@@ -1,1 +1,2602 @@
+Hooks
+Last updated on 6/21/2026
 
+Hooks allow resources to add custom logic to existing actions without modifying the original code. They work by running a set of callbacks (hook events) through a pipeline whenever a specific action occurs. Each hook can inspect the data and reject the action if needed.
+
+After the pipeline completes, a post-hook event can run to handle the final result, such as logging or cleanup, without affecting the outcome.
+
+This feature expands upon the idea of hooks introduced by ox_inventory.
+
+See our internally registered hooks for examples.
+
+HookPipeline
+
+Creates a hook pipeline for a specific event, which manages a collection of registered hooks and controls execution flow through filtering, rejection, and dispatching.
+
+Lua
+TypeScript
+
+lib.hook:new(event, filter)
+event: string
+filter?: function(hook, payload): boolean
+Used to filter out registered hooks based on if they pass a predicate function.
+Returns: HookPipeline
+
+Methods
+
+registerHook
+
+A hook is a registered callback executed during a hook pipeline. It can inspect the payload, perform validation, and optionally reject the operation.
+
+Lua
+TypeScript
+
+pipeline:registerHook(handler, options)
+handler: function(payload: unknown): boolean
+options?: table
+Optional metadata to attach to the hook.
+remove
+
+Removes hooks from the pipeline.
+
+Lua
+TypeScript
+
+pipeline:remove(hookId)
+hookId?: string
+If defined, only the specified hook is removed - otherwise all hooks for the invoking resource are removed.
+dispatch
+
+Executes each registered hook in order of registration, checking the payload against a provided filter using the hook options and executing the hook callback.
+
+A hook may block execution by returning false from a registered handler.
+
+If any hook rejects the execution, dispatch is cancelled and result.ok is set to false.
+
+The returned object acts as a finalisation handle and emits results to registered handlers once closed.
+
+Lua
+TypeScript
+
+local hook <close> = pipeline:dispatch(payload)
+payload: unknown
+EventHook
+
+Allows resources to call pipeline.registerHook using exports.
+
+Lua
+TypeScript
+
+lib.registerHook(eventName, handler, options)
+eventName: string
+handler?: function(payload: unknown): boolean
+options?: Optional metadata to attach to the hook.
+Methods
+
+on
+
+Attaches an event handler to the hook which is executed after all hooks have been dispatched, allowing follow-up logic for successful or rejected events.
+
+Lua
+TypeScript
+
+hook:on(handler)
+handler: function(ok: boolean, payload: unknown)
+off
+
+Detatches the currently registered post-hook event handler, if one exists.
+
+Lua
+TypeScript
+
+hook:off()
+remove
+
+Fully removes this hook from both the local event system and the external hook pipeline provided from the originating resource.
+
+Lua
+TypeScript
+
+hook:remove()
+Registered Hooks
+
+These hook pipelines are registered and managed by ox_lib for other resources to interact with.
+
+See EventHook for more information.
+
+ox_lib:setPlayerState
+
+When using sv_stateBagStrictMode players cannot arbitrarily modify their own states, and changes will be rejected by default.
+
+Lua
+TypeScript
+
+lib.registerHook('ox_lib:setPlayerState', predicate, { key: state })
+ox_lib:setEntityState
+
+When using sv_stateBagStrictMode players cannot arbitrarily modify entity states, and changes will be rejected by default.
+
+Lua
+TypeScript
+
+lib.registerHook('ox_lib:setEntityState', predicate, { key: state })
+
+
+
+Ped
+Last updated on 6/20/2026
+
+A class for ped entities implementing a custom statebag interface and common entity operations.
+
+Constructor
+
+Lua
+TypeScript
+
+lib.ped:new(handle)
+handle: number The entity's script handle.
+Returns: Ped
+
+Methods
+
+getArmour
+
+Gets the entity's current armour.
+
+Lua
+TypeScript
+
+entity:getArmour()
+Returns: number
+
+setArmour
+
+Sets the entity's armour.
+
+Lua
+TypeScript
+
+entity:setArmour(amount)
+amount: number
+GameEntity Methods
+
+set
+
+Writes a value to the entity's statebag.
+
+Lua
+TypeScript
+
+entity:set(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+setr
+
+Writes a replicated value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Replicated values are synced between the server and all relevant players.
+
+Lua
+TypeScript
+
+entity:setr(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+sets
+
+Writes a synced value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Synced values are only replicated between the player and server, and cannot be set on non-player entities.
+
+Lua
+TypeScript
+
+entity:sets(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+get
+
+Returns a value from the entity's statebag.
+
+Lua
+TypeScript
+
+entity:get(key)
+key: string
+Returns: unknown
+
+has
+
+Returns whether a key exists in the entity's statebag.
+
+Lua
+TypeScript
+
+entity:has(key)
+key: string
+Returns: boolean
+
+keys
+
+Returns an array of all keys set on the entity's statebag.
+
+Lua
+TypeScript
+
+entity:keys()
+Returns: string[]
+
+setHandle
+
+Updates the handle, netId, and statebag properties on an entity. Useful if re-using an entity instance, respawning an entity, changing the model, etc.
+
+Lua
+TypeScript
+
+entity:setHandle(handle)
+handle: number
+getCoords
+
+Gets the entity's current coordinates.
+
+Lua
+TypeScript
+
+entity:getCoords()
+Returns: Vector3
+
+setCoords
+
+Sets the entity's coordinates to the specified position.
+
+Lua
+TypeScript
+
+entity:setCoords(x, y, z, deadFlag, ragdollFlag, clearArea)
+x: number
+y: number
+z: number
+deadFlag?: boolean (Defaults to false)
+ragdollFlag?: boolean (Defaults to false)
+clearArea?: boolean (Defaults to false)
+getModel
+
+Gets the entity's current model hash.
+
+Lua
+TypeScript
+
+entity:getModel()
+Returns: number
+
+getHeading
+
+Gets the entity's current heading (or yaw) in degrees.
+
+Lua
+TypeScript
+
+entity:getHeading()
+Returns: number
+
+setHeading
+
+Sets the entity's heading (or yaw) to the given value in degrees.
+
+Lua
+TypeScript
+
+entity:setHeading(heading)
+heading: number
+getRoutingBucket
+
+Gets the entity's current routing bucket.
+
+Lua
+TypeScript
+
+entity:getRoutingBucket()
+Returns: number
+
+setRoutingBucket
+
+Sets the entity's routing bucket to the given id. Server only.
+
+Lua
+TypeScript
+
+entity:setRoutingBucket(bucketId)
+bucketId: number
+
+
+Player
+Last updated on 6/21/2026
+
+A class that extends the Ped class with additional functionality for players.
+
+Constructor
+
+Lua
+TypeScript
+
+lib.player:new(netId)
+netId: number The player's server id.
+Returns: Player
+
+Methods
+
+setModel
+
+Creates a new ped and assigns it to the player. On the client, this invalidates the entity handle (see setHandle).
+
+Lua
+TypeScript
+
+entity:setModel(model)
+model: string | number
+Ped Methods
+
+getArmour
+
+Gets the entity's current armour.
+
+Lua
+TypeScript
+
+entity:getArmour()
+Returns: number
+
+setArmour
+
+Sets the entity's armour.
+
+Lua
+TypeScript
+
+entity:setArmour(amount)
+amount: number
+GameEntity Methods
+
+set
+
+Writes a value to the entity's statebag.
+
+Lua
+TypeScript
+
+entity:set(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+setr
+
+Writes a replicated value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Replicated values are synced between the server and all relevant players.
+
+Lua
+TypeScript
+
+entity:setr(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+sets
+
+Writes a synced value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Synced values are only replicated between the player and server, and cannot be set on non-player entities.
+
+Lua
+TypeScript
+
+entity:sets(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+get
+
+Returns a value from the entity's statebag.
+
+Lua
+TypeScript
+
+entity:get(key)
+key: string
+Returns: unknown
+
+has
+
+Returns whether a key exists in the entity's statebag.
+
+Lua
+TypeScript
+
+entity:has(key)
+key: string
+Returns: boolean
+
+keys
+
+Returns an array of all keys set on the entity's statebag.
+
+Lua
+TypeScript
+
+entity:keys()
+Returns: string[]
+
+setHandle
+
+Updates the handle, netId, and statebag properties on an entity. Useful if re-using an entity instance, respawning an entity, changing the model, etc.
+
+Lua
+TypeScript
+
+entity:setHandle(handle)
+handle: number
+getCoords
+
+Gets the entity's current coordinates.
+
+Lua
+TypeScript
+
+entity:getCoords()
+Returns: Vector3
+
+setCoords
+
+Sets the entity's coordinates to the specified position.
+
+Lua
+TypeScript
+
+entity:setCoords(x, y, z, deadFlag, ragdollFlag, clearArea)
+x: number
+y: number
+z: number
+deadFlag?: boolean (Defaults to false)
+ragdollFlag?: boolean (Defaults to false)
+clearArea?: boolean (Defaults to false)
+getModel
+
+Gets the entity's current model hash.
+
+Lua
+TypeScript
+
+entity:getModel()
+Returns: number
+
+getHeading
+
+Gets the entity's current heading (or yaw) in degrees.
+
+Lua
+TypeScript
+
+entity:getHeading()
+Returns: number
+
+setHeading
+
+Sets the entity's heading (or yaw) to the given value in degrees.
+
+Lua
+TypeScript
+
+entity:setHeading(heading)
+heading: number
+getRoutingBucket
+
+Gets the entity's current routing bucket.
+
+Lua
+TypeScript
+
+entity:getRoutingBucket()
+Returns: number
+
+setRoutingBucket
+
+Sets the entity's routing bucket to the given id. Server only.
+
+Lua
+TypeScript
+
+entity:setRoutingBucket(bucketId)
+bucketId: number
+
+Prop
+Last updated on 6/20/2026
+
+A class for object entities implementing a custom statebag interface and common entity operations.
+
+Constructor
+
+Lua
+TypeScript
+
+lib.prop:new(handle)
+handle: number The entity's script handle.
+Returns: Prop
+
+Methods
+
+setOnGround
+
+Attempts to set the entity onto the ground.
+On the server, this uses the ox_entity_setonground state and a statebag change handler.
+
+Lua
+TypeScript
+
+entity:setOnGround()
+Returns: boolean
+
+GameEntity Methods
+
+set
+
+Writes a value to the entity's statebag.
+
+Lua
+TypeScript
+
+entity:set(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+setr
+
+Writes a replicated value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Replicated values are synced between the server and all relevant players.
+
+Lua
+TypeScript
+
+entity:setr(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+sets
+
+Writes a synced value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Synced values are only replicated between the player and server, and cannot be set on non-player entities.
+
+Lua
+TypeScript
+
+entity:sets(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+get
+
+Returns a value from the entity's statebag.
+
+Lua
+TypeScript
+
+entity:get(key)
+key: string
+Returns: unknown
+
+has
+
+Returns whether a key exists in the entity's statebag.
+
+Lua
+TypeScript
+
+entity:has(key)
+key: string
+Returns: boolean
+
+keys
+
+Returns an array of all keys set on the entity's statebag.
+
+Lua
+TypeScript
+
+entity:keys()
+Returns: string[]
+
+setHandle
+
+Updates the handle, netId, and statebag properties on an entity. Useful if re-using an entity instance, respawning an entity, changing the model, etc.
+
+Lua
+TypeScript
+
+entity:setHandle(handle)
+handle: number
+getCoords
+
+Gets the entity's current coordinates.
+
+Lua
+TypeScript
+
+entity:getCoords()
+Returns: Vector3
+
+setCoords
+
+Sets the entity's coordinates to the specified position.
+
+Lua
+TypeScript
+
+entity:setCoords(x, y, z, deadFlag, ragdollFlag, clearArea)
+x: number
+y: number
+z: number
+deadFlag?: boolean (Defaults to false)
+ragdollFlag?: boolean (Defaults to false)
+clearArea?: boolean (Defaults to false)
+getModel
+
+Gets the entity's current model hash.
+
+Lua
+TypeScript
+
+entity:getModel()
+Returns: number
+
+getHeading
+
+Gets the entity's current heading (or yaw) in degrees.
+
+Lua
+TypeScript
+
+entity:getHeading()
+Returns: number
+
+setHeading
+
+Sets the entity's heading (or yaw) to the given value in degrees.
+
+Lua
+TypeScript
+
+entity:setHeading(heading)
+heading: number
+getRoutingBucket
+
+Gets the entity's current routing bucket.
+
+Lua
+TypeScript
+
+entity:getRoutingBucket()
+Returns: number
+
+setRoutingBucket
+
+Sets the entity's routing bucket to the given id. Server only.
+
+Lua
+TypeScript
+
+entity:setRoutingBucket(bucketId)
+bucketId: number
+
+Vehicle
+Last updated on 6/20/2026
+
+A class for vehicle entities implementing a custom statebag interface and common entity operations.
+
+Constructor
+
+Lua
+TypeScript
+
+lib.vehicle:new(handle)
+handle: number The entity's script handle.
+Returns: Vehicle
+
+Methods
+
+setOnGround
+
+Attempts to set the entity onto the ground.
+On the server, this uses the ox_entity_setonground state and a statebag change handler.
+
+Lua
+TypeScript
+
+entity:setOnGround()
+Returns: boolean
+
+getType
+
+Gets the entity's vehicle type. See GetVehicleType.
+
+Lua
+TypeScript
+
+entity:getType()
+Returns: string
+
+getPlate
+
+Gets the entity's number plate text.
+
+Lua
+TypeScript
+
+entity:getPlate()
+Returns: string
+
+setPlate
+
+Sets the entity's number plate text.
+
+Lua
+TypeScript
+
+entity:setPlate(plate)
+plate: string
+GameEntity Methods
+
+set
+
+Writes a value to the entity's statebag.
+
+Lua
+TypeScript
+
+entity:set(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+setr
+
+Writes a replicated value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Replicated values are synced between the server and all relevant players.
+
+Lua
+TypeScript
+
+entity:setr(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+sets
+
+Writes a synced value to the entity's statebag. Client-set values are validated by the server (see Hooks).
+Synced values are only replicated between the player and server, and cannot be set on non-player entities.
+
+Lua
+TypeScript
+
+entity:sets(key, value)
+key: string
+value: any
+Returns: boolean - If the state changed.
+
+get
+
+Returns a value from the entity's statebag.
+
+Lua
+TypeScript
+
+entity:get(key)
+key: string
+Returns: unknown
+
+has
+
+Returns whether a key exists in the entity's statebag.
+
+Lua
+TypeScript
+
+entity:has(key)
+key: string
+Returns: boolean
+
+keys
+
+Returns an array of all keys set on the entity's statebag.
+
+Lua
+TypeScript
+
+entity:keys()
+Returns: string[]
+
+setHandle
+
+Updates the handle, netId, and statebag properties on an entity. Useful if re-using an entity instance, respawning an entity, changing the model, etc.
+
+Lua
+TypeScript
+
+entity:setHandle(handle)
+handle: number
+getCoords
+
+Gets the entity's current coordinates.
+
+Lua
+TypeScript
+
+entity:getCoords()
+Returns: Vector3
+
+setCoords
+
+Sets the entity's coordinates to the specified position.
+
+Lua
+TypeScript
+
+entity:setCoords(x, y, z, deadFlag, ragdollFlag, clearArea)
+x: number
+y: number
+z: number
+deadFlag?: boolean (Defaults to false)
+ragdollFlag?: boolean (Defaults to false)
+clearArea?: boolean (Defaults to false)
+getModel
+
+Gets the entity's current model hash.
+
+Lua
+TypeScript
+
+entity:getModel()
+Returns: number
+
+getHeading
+
+Gets the entity's current heading (or yaw) in degrees.
+
+Lua
+TypeScript
+
+entity:getHeading()
+Returns: number
+
+setHeading
+
+Sets the entity's heading (or yaw) to the given value in degrees.
+
+Lua
+TypeScript
+
+entity:setHeading(heading)
+heading: number
+getRoutingBucket
+
+Gets the entity's current routing bucket.
+
+Lua
+TypeScript
+
+entity:getRoutingBucket()
+Returns: number
+
+setRoutingBucket
+
+Sets the entity's routing bucket to the given id. Server only.
+
+Lua
+TypeScript
+
+entity:setRoutingBucket(bucketId)
+bucketId: number
+
+Server
+Last updated on 6/19/2026
+
+Wrapper around the built-in ACL system. Handles lib.addCommand and ox_groups permissions.
+Refer to Basic Aces & Principals overview/guide for more information.
+
+lib.addAce
+
+Assigns the ace permission to a principal. Third parameter defaults to 'allow', while passing false sets the permission to 'deny'.
+
+Lua
+JS
+
+lib.addAce(principal, ace, allow)
+lib.addAce('group.admin', 'command.say')
+principal: string
+ace: string
+allow: boolean
+lib.removeAce
+
+Removes the ace permission from a principal. Third parameter defaults to 'allow', while passing false sets the permission to 'deny'.
+
+Lua
+JS
+
+lib.removeAce(principal, ace, allow)
+lib.removeAce('group.admin', 'command.say')
+principal: string
+ace: string
+allow: boolean
+lib.addPrincipal
+
+Assigns a principal to a parent principal. Children inherit permissions from the parent.
+
+Lua
+JS
+
+lib.addPrincipal(child, parent)
+lib.addPrincipal('player.1', 'group.moderator')
+child: string
+parent: string
+lib.removePrincipal
+
+Removes a principal from a parent principal.
+
+Lua
+JS
+
+lib.removePrincipal(child, parent)
+lib.removePrincipal('player.1', 'group.moderator')
+child: string
+parent: string
+
+Ox Lib
+AddCommand
+Server
+Last updated on 6/19/2026
+
+Registers commands and simplifies argument validation, permissions, and chat suggestions.
+
+
+lib.addCommand(commandName, properties, cb)
+commandName: string or string[]
+properties: table or false
+help?: string
+restricted?: boolean or string or string[]
+params?: table[]
+name: string
+help?: string
+type?: 'number' or 'playerId' or 'string' or 'longString'
+optional?: boolean
+
+lib.addCommand('giveitem', {
+    help = 'Gives an item to a player',
+    params = {
+        {
+            name = 'target',
+            type = 'playerId',
+            help = 'Target player\'s server id',
+        },
+        {
+            name = 'item',
+            type = 'string',
+            help = 'Name of the item to give',
+        },
+        {
+            name = 'count',
+            type = 'number',
+            help = 'Amount of the item to give, or blank to give 1',
+            optional = true,
+        },
+        {
+            name = 'metatype',
+            help = 'Sets the item\'s "metadata.type"',
+            optional = true,
+        },
+    },
+    restricted = 'group.admin'
+}, function(source, args, raw)
+    local item = Items(args.item)
+    if item then
+        Inventory.AddItem(args.target, item.name, args.count or 1, args.metatype)
+    end
+end)
+
+Ox Lib
+AddKeybind
+Client
+Last updated on 6/19/2026
+
+Registers keybinds and simplifies interactions of the keybinds.
+
+CKeybind Class
+
+A table representing a keybind with the following properties.
+
+name: string
+description: string
+currentKey: string
+Key that the current user has this keybind set to
+disabled: boolean
+Whether or not the keybind is currently disabled
+isPressed: boolean
+"A state indicating whether the keybind is pressed or not
+hash: number
+Internal hash of the keybind that is used to reference it within the game itself
+defaultKey?: string
+Default key to set the keybind to for new players
+NOTE: Changing this will not change the key for existing players
+defaultMapper?: string
+See Input Mapper Ids for more information
+secondaryKey?: string
+An optional secondary keybind.
+secondaryMapper?: string
+An optional mapper for the secondary key, otherwise using the default mapper.
+allowInPauseMenu?: boolean
+Allows the keybind to trigger while the pause menu/frontend is active.
+Default: false
+disable: function(self: CKeybind, disable: boolean)
+Built-in function to enable / disable a keybind
+isControlPressed: function(self: CKeybind)
+Built-in function to get the current pressed state for the keybind
+onPressed?: function(self: CKeybind)
+User-defined function triggered on keybind press
+onReleased?: function(self: CKeybind)
+User-defined function triggered on keybind release
+lib.addKeybind
+
+
+lib.addKeybind(data)
+data: table
+name: string
+Name of the command created for RegisterKeyMap
+Must not contain whitespace
+description: string
+The name shown in 'Settings' -> 'Key Bindings' -> 'FiveM'
+defaultKey?: string
+Default: None
+defaultMapper?: string
+Default: keyboard
+secondaryKey?: string
+secondaryMapper?: string
+allowInPauseMenu?: boolean
+Default: false
+If true, keybind callbacks can run while IsPauseMenuActive() is true
+disabled?: boolean
+Whether or not the keybind should be disabled by default
+onPressed?: function(self: CKeybind)
+Function triggered on keybind press
+onReleased?: function(self: CKeybind)
+Function triggered on keybind release
+
+local keybind = lib.addKeybind({
+    name = 'respects',
+    description = 'press F to pay respects',
+    defaultKey = 'F',
+    allowInPauseMenu = true,
+    onPressed = function(self)
+        print(('pressed %s (%s)'):format(self.currentKey, self.name))
+    end,
+    onReleased = function(self)
+        print(('released %s (%s)'):format(self.currentKey, self.name))
+    end
+})
+Enable / Disable Keybinds
+
+Keybinds can be enabled / disabled by using the disable method.
+
+
+keybind:disable(true) -- disables the keybind
+keybind:disable(false) -- enables the keybind
+Keybind pressed states
+
+All keybinds registered with lib.addKeybind() gets a boolean state, that shows if its pressed or not.
+
+You can get the state with the following method
+
+
+local state = keybind:isControlPressed()
+
+Ox Lib
+Array
+Shared
+Last updated on 6/19/2026
+
+lib.array
+
+A table used as a prototype for the Array class. Functions can be used as class methods or standard functions.
+
+lib.array:new
+
+Constructs instance of Array containing the given elements.
+
+...: any
+
+lib.array:new(...)
+Returns:
+
+arr: Array
+lib.array.from
+
+Creates a new array from an iterable value.
+
+iter: function | table | string
+Iterator functions such as string.gmatch can be used to construct arrays.
+
+lib.array.from(iter)
+Returns:
+
+arr: Array
+lib.array.at
+
+Returns the element at the given index, with negative numbers counting backwards from the end of the array.
+
+index: integer
+
+lib.array.at(index)
+Returns:
+
+element: unknown
+lib.array.merge
+
+Combines the elements of two or more arrays into a new array.
+
+...: Array
+
+lib.array.merge(...)
+Returns:
+
+Array
+lib.array.every
+
+Tests if all elements in an array succeed in passing the provided test function.
+
+arr: Array
+testFn: function(element: unknown): boolean
+
+lib.array.every(arr, testFn)
+Returns:
+
+success: boolean
+lib.array.fill
+
+Sets all elements within a range to the given value and returns the modified array.
+
+arr: Array
+value: any
+start?: integer
+endIndex?: integer
+
+lib.array.fill(arr, value, start, endIndex)
+Returns:
+
+arr: Array
+lib.array.filter
+
+Creates a new array containing the elements from an array that pass the provided test function.
+
+arr: Array
+testFn: function(element: unknown): boolean
+
+lib.array.filter(arr, testFn)
+Returns:
+
+newArr: Array
+lib.array.find
+
+Returns the first element of an array the passes the provided test function.
+
+arr: Array
+testFn: function(element: unknown): boolean
+reverse?: boolean
+Iterate over the array in reverse order.
+
+lib.array.find(arr, testFn, reverse)
+Returns:
+
+element: unknown
+lib.array.findIndex
+
+Returns the index of the first element of an array the passes the provided test function.
+
+arr: Array
+testFn: function(element: unknown): boolean
+reverse?: boolean
+Iterate over the array in reverse order.
+
+lib.array.findIndex(arr, testFn, reverse)
+Returns:
+
+index: integer
+lib.array.indexOf
+
+Returns the index of the first element of an array the matches the provided value.
+
+arr: Array
+value: any
+reverse?: boolean
+Iterate over the array in reverse order.
+
+lib.array.indexOf(arr, value, reverse)
+Returns:
+
+index: integer
+lib.array.forEach
+
+Executes the provided function for each element in an array.
+
+arr: Array
+cb: function(element: unknown)
+
+lib.array.forEach(arr, cb, reverse)
+Returns:
+
+index: integer
+lib.array.join
+
+Concatenates all elements of an array into a string, separated by commas or the specified seperator.
+
+arr: Array
+seperator?: string
+
+lib.array.join(arr, seperator)
+Returns:
+
+str: string
+lib.array.map
+
+Create a new array containing the results from calling the provided function on each element in an array.
+
+fn: function(element: unknown, index: integer, arr: Array): unknown
+
+lib.array.map(arr, fn)
+Returns:
+
+newArr: Array
+lib.array.pop
+
+Removes the last element from an array and returns the value.
+
+arr: Array
+
+lib.array.pop(arr)
+Returns:
+
+element: unknown
+lib.array.push
+
+Adds the given elements to the end of an array and returns the new array length.
+
+arr: Array
+...: any
+
+lib.array.push(arr, ...)
+Returns:
+
+length: integer
+lib.array.shift
+
+Removes the first element from an array and returns the value.
+
+arr: Array
+
+lib.array.shift(arr)
+Returns:
+
+element: unknown
+lib.array.slice
+
+Creates a shallow copy of a portion of an array as a new array.
+
+arr: Array
+start?: integer
+finish?: integer
+
+lib.array.slice(arr, start, finish)
+Returns:
+
+newArr: Array
+lib.array.toReversed
+
+Creates a new array with the order of its elements reversed from the given array.
+
+arr: Array
+
+lib.array.toReversed(arr)
+Returns:
+
+newArr: Array
+lib.array.unshift
+
+Inserts new elements at the start of an array and returns the new array length.
+
+arr: Array
+...: any
+
+lib.array.unshift(arr, ...)
+Returns:
+
+length: integer
+lib.array.reduce
+
+The "reducer" function is applied to every element in an array, with the previous result serving as the accumulator.
+If an initial value is provided it's used as the accumulator for the first index; otherwise iteration starts at the second index, with the first index as the accumulator.
+
+arr: Array
+reducer: function(accumulator: unknown, element: unknown, index?: integer)
+initialValue?: any
+
+lib.array.reduce(arr, reducer)
+Returns:
+
+accumulator: unknown
+lib.array.reverse
+
+Reverses the order of elements inside an array.
+
+arr: Array
+
+lib.array.reverse(arr)
+Returns:
+
+arr: Array
+lib.isArray
+
+Determines if the given table is an instance of Array or an array-like table.
+
+tbl: table
+
+lib.array.isArray(tbl)
+Returns:
+
+isArray: boolean
+
+Ox Lib
+Cache
+Client
+Last updated on 6/19/2026
+
+Values and cache functionality available to the client, in addition to the shared values.
+
+Default values
+
+ped: number
+player entity id
+playerId: number
+player id
+serverId: number
+player server id
+weapon: number or false
+current weapon hash
+vehicle: number or false
+vehicle entity id
+seat: number or false
+vehicle seat index
+coords: vector3
+current player coords
+only populated if using zones or points
+cannot be listened for with lib.onCache
+mount: number or false (RedM only)
+mount entity id
+lib.onCache
+
+Register an event handler that is triggered when the cached value is updated.
+
+Lua
+JS
+
+lib.onCache(key, function(value, oldValue) end)
+key: string
+ped
+vehicle
+seat
+weapon
+mount (RedM only)
+value: any
+
+lib.onCache('vehicle', function(value, oldValue)
+    print('old vehicle:', cache.vehicle)
+    print('new vehicle:', value)
+end)
+
+Ox Lib
+Cache
+Shared
+Last updated on 6/20/2026
+
+A table containing cached function results, which may be constants or infrequently changed.
+
+Default values
+
+resource: string
+the value returned by GetCurrentResourceName.
+game: 'fxserver' | 'fivem' | 'redm'
+the value returned by GetGameName.
+Adding new cached values
+
+Values can be cached permanently, or added with a timeout.
+
+
+cache(key, func, timeout)
+key: string
+a unique name to store and access the cached state.
+func: function
+a function to call when the cache is invalidated/empty.
+timeout?: number
+a timer in milliseconds to clear the cached state.
+
+local i = 0
+while true do
+    Wait(1000)
+    i += 1
+    print(cache('test', function() return i end, 5000))
+end
+-- output:
+> 1
+> 1
+> 1
+> 1
+> 1
+> 6
+> 6
+> 6
+
+Ox Lib
+Callback
+Lua
+Client
+Last updated on 6/19/2026
+
+Trigger Server Callback
+
+lib.callback
+
+The response is handled in a separate coroutine.
+
+
+lib.callback(name, delay, cb, ...)
+name: string
+delay: number or false
+Amount of time until this callback can be triggered again
+cb: function
+...: any
+
+lib.callback('ox_inventory:getItemCount', false, function(count)
+    print(count)
+end, 'water', {type = 'fresh'})
+lib.callback.await
+
+The current coroutine is yielded until a response is received.
+
+
+lib.callback.await(name, delay, ...)
+name: string
+delay: number or false
+Amount of time until this callback can be triggered again
+...: any
+
+local count = lib.callback.await('ox_inventory:getItemCount', false, 'water', {type = 'fresh'})
+print(count)
+Register Client Callback
+
+lib.callback.register
+
+Register an event handler for responding to server requests.
+
+
+lib.callback.register(name, cb)
+name: string
+cb: function
+
+lib.callback.register('ox:getNearbyVehicles', function(radius)
+    local nearbyVehicles = lib.getNearbyVehicles(GetEntityCoords(cache.ped), radius, true)
+    return nearbyVehicles
+end)
+
+Ox Lib
+Callback
+Lua
+Server
+Last updated on 6/19/2026
+
+Trigger Client Callback
+
+lib.callback
+
+The response is handled in a separate coroutine.
+
+
+lib.callback(name, playerId, cb, ...)
+name: string
+playerId: number
+cb: function
+...: any
+
+lib.callback('ox:getNearbyVehicles', source, function(vehicles)
+    for i = 1, #vehicles do
+        DeleteEntity(entity)
+    end
+end, args.radius)
+lib.callback.await
+
+The current coroutine is yielded until a response is received.
+
+
+lib.callback.await(name, playerId, ...)
+name: string
+playerId: number
+...: any
+
+local vehicles = lib.callback.await('ox:getNearbyVehicles', source, args.radius)
+for i = 1, #vehicles do
+    DeleteEntity(entity)
+end
+Register Server Callback
+
+lib.callback.register
+
+Register an event handler for responding to client requests.
+
+
+lib.callback.register(name, cb)
+name: string
+cb: function
+
+lib.callback.register('ox_inventory:getItemCount', function(source, item, metadata, target)
+    local inventory = target and Inventory(target) or Inventory(source)
+    return (inventory and Inventory.GetItem(inventory, item, metadata, true)) or 0
+end)
+
+Ox Lib
+Class
+Shared
+Last updated on 6/19/2026
+
+Classes
+
+A class is a template for creating objects with set attributes and behaviours.
+
+Though Lua does not typically support object-oriented programming, it is possible to simulate it with metatables.
+Our implementation of classes are loosely based on JavaScript.
+Inheritance
+
+Classes can inherit attributes and behaviors from other classes, similar to how instances inherit from their parent class.
+
+When specifying a "super" class in a class declaration, you create a derived or "sub" class. This subclass inherits both fields and methods from its parent. This inheritance extends across multiple levels of derived classes, enabling class attributes to be shared throughout the class hierarchy.
+
+Encapsulation
+
+Encapsulation is the practice of bundling data (attributes) and methods (behaviors) within a class.
+
+This practice helps to organize related functionalities and prevents outside interference with the internal workings of the class. By encapsulating these elements, we promote modularity, maintain data integrity, and control how data is accessed and manipulated within a program.
+
+OxClass
+
+OxClass is a blueprint used for all classes created with lib.class. It provides some some basic attributes and behaviours shared by all classes.
+
+Attributes
+
+__name: string
+A protected field representing the name of the class.
+constructor?: function
+A protected method used to instantiate a new object inheriting from a class.
+Called by class:new(...) if class:constructor() exists.
+private?: table
+A protected field which holds all private data in a class.
+Private data cannot be accessed outside of class methods, enforcing security and data integrity.
+Is always defined in the constructor, but must be explicitly defined if no private propertiees are set.
+super?: class
+A protected method referencing the constructor of a superclass.
+Must be called inside a class constructor when instantiating a class.
+lib.class
+
+This function allows you to define a new class, optionally inheriting from a parent or "super" class.
+
+
+local MyClass = lib.class(name, super)
+Parameters
+
+name: string
+super?: table
+Sets the new class as a subset of the super class.
+Returns
+
+table
+The newly created class.
+Example
+
+
+---@class Person : OxClass
+---@field name string
+local Person = lib.class('Person')
+function Person:constructor(name)
+    print('calling Person constructor for', name)
+    self.name = name
+end
+-- Professor Class (extends Person)
+---@class Professor : Person
+---@field teaches string
+local Professor = lib.class('Professor', Person)
+function Professor:constructor(name, teaches)
+    print('calling Professor constructor for', name)
+    self:super(name)
+    self.teaches = teaches
+end
+function Professor:introduceSelf()
+    print(("My name is %s, and I will be your %s professor."):format(self.name, self.teaches))
+end
+function Professor:grade(paper)
+    local grade = math.random(1, 4)
+    print(grade)
+end
+CreateThread(function()
+    local walter = Professor:new('Walter', 'Chemistry')
+    walter:introduceSelf()
+    walter:grade('my paper')
+end)
+-- Student Class (extends Person)
+---@class Student : Person
+---@field private private { year: number }
+local Student = lib.class('Student', Person)
+---@param name string
+---@param year number
+function Student:constructor(name, year)
+    print('calling Student constructor for', name)
+    self:super(name)
+    self.private.year = year
+end
+function Student:introduceSelf()
+    print(("Hi! I'm %s, and I'm in year %s."):format(self.name, self.private.year))
+end
+---@param year number
+function Student:setYear(year)
+    self.private.year = year
+end
+CreateThread(function()
+    local jesse = Student:new('Jesse', 2)
+    jesse:introduceSelf() -- Hi! I'm Jesse, and I'm in year 2.
+    jesse:setYear(3)
+    jesse:introduceSelf() -- Hi! I'm Jesse, and I'm in year 3.
+    print(jesse.private.year) -- nil
+    print(getmetatable(jesse.private)) -- private
+    jesse.private.year = 4 -- error
+end)
+
+Ox Lib
+Cron
+Server
+Last updated on 6/19/2026
+
+A Lua implementation of cron, allowing tasks to be scheduled to run periodically at fixed times, dates, and intervals.
+
+Cron expression
+
+A string containing five values separated by white spaces, representing a set of times to execute a task.
+
+Field	Valid values
+Minutes	0-59
+Hours	0-23
+Day of month	1-31
+Month	1-12 or jan-dec
+Day of week	1-7 or sun-sat
+Note: Day of the week is set to match os.date and starts at 1, unlike the cron-standard which starts at 0.
+
+* Wildcards
+
+Represents all values, e.g. * * * * * will run every minute, or * * * * 1 will run every minute on Sunday.
+
+, Lists
+
+Commas can be used to create a list of values, e.g. * * * * sun,mon,tue will run every minute on Sunday, Monday, and Tuesday.
+
+- Ranges
+
+Dashes define a range of values, e.g. 10-30 * * * * will start running the task at the 10th minute, and every minute until the 30th minute.
+
+/ Steps
+
+Slashes can be used for step values, e.g. * */4 * * * will run every 4 hours and is shorthand for * 0,4,8,12,16,20 * * *.
+
+Functions
+
+lib.cron.new
+
+Creates a new cronjob, scheduling a task to run at fixed times or intervals.
+
+
+lib.cron.new(expression, job, options)
+expression: string
+A cron expression such as * * * * * representing minute, hour, day, month, and day of the week
+job: fun(task: OxTask, date: osdate)
+options?: table
+debug?: boolean
+Return:
+
+task: OxTask
+
+Ox Lib
+DisableControls
+Client
+Last updated on 6/19/2026
+
+A centralized way to track and disable game controls.
+
+lib.disableControls
+
+Call on frame to disable all stored controls.
+
+
+lib.disableControls()
+lib.disableControls:Add
+
+Adds the specified control(s) to the stored list.
+If the control is already being tracked, the stored counter will be incremented.
+
+
+lib.disableControls:Add(...)
+vararg: number or number[]
+Control(s) to add a stored count of
+lib.disableControls:Remove
+
+Removes the specified control(s) from the stored list.
+If the stored counter for a given control is greater than one, the stored counter will be decremented.
+
+
+lib.disableControls:Remove(...)
+vararg: number or number[]
+Control(s) to remove a stored count of
+lib.disableControls:Clear
+
+Clears the stored counter(s) for the specified control(s).
+
+
+lib.disableControls:Clear(...)
+vararg: number or number[]
+Control(s) to clear out from being tracked
+
+Ox Lib
+Dui
+Lua
+Client
+Last updated on 6/19/2026
+
+Simple and centralised dui creation, supporting sending message, change url and deletion
+
+lib.dui:new
+
+Constructs instance of Dui.
+
+
+lib.dui:new(data)
+data: table
+url: string
+width: number
+height: number
+debug?: boolean
+Returns:
+
+dui: Dui
+url: string
+duiObject: number
+duiHandle: string
+runtimeTxd: number
+txdObject: number
+dictName: string
+txtName: string
+setUrl: function(url: string)
+sendMessage: function(data: table)
+remove: function
+Usage Example
+
+
+local dui = lib.dui:new({
+	url = ("nui://%s/web/index.html"):format(cache.resource),
+	width = 1920,
+	height = 1080,
+	debug = true
+})
+-- Change url
+dui:setUrl("https://google.com")
+-- Send a message
+dui:sendMessage({
+	action = "display",
+	value = true
+})
+-- Destroy
+dui:remove()
+
+Ox Lib
+GetClosestObject
+Shared
+Last updated on 6/19/2026
+
+lib.getClosestObject
+
+Get the object handle and coords of the closest object to a set of coordinates.
+
+
+lib.getClosestObject(coords, maxDistance)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+Return:
+
+object?: number
+coords?: vector3
+
+Ox Lib
+GetClosestPed
+Shared
+Last updated on 6/19/2026
+
+lib.getClosestPed
+
+Get the ped handle and coords of the closest ped to a set of coordinates.
+
+
+lib.getClosestPed(coords, maxDistance)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+Return:
+
+ped?: number
+coords?: vector3
+
+Ox Lib
+GetClosestPlayer
+Client
+Last updated on 6/19/2026
+
+lib.getClosestPlayer
+
+Get the player id, ped handle, and coords of the closest player to a set of coordinates.
+
+
+lib.getClosestPlayer(coords, maxDistance, includePlayer)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+includePlayer?: boolean
+Whether or not to include the current player.
+Default: false
+Return:
+
+playerId?: number
+playerPed?: number
+playerCoords?: vector3
+
+Ox Lib
+GetClosestPlayer
+Server
+Last updated on 6/19/2026
+
+lib.getClosestPlayer
+
+Get the player id, ped handle, and coords of the closest player to a set of coordinates.
+
+
+lib.getClosestPlayer(coords, maxDistance, ignorePlayerId)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+ignorePlayerId?: number|false
+A player ID to ignore when checking. Set to false to include all players.
+Default: false
+Return:
+
+playerId?: number
+playerPed?: number
+playerCoords?: vector3
+
+Ox Lib
+GetClosestVehicle
+Shared
+Last updated on 6/19/2026
+
+lib.getClosestVehicle
+
+Get the vehicle handle and coords of the closest vehicle to a set of coordinates.
+
+
+lib.getClosestVehicle(coords, maxDistance, includePlayerVehicle)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+includePlayerVehicle?: boolean
+Whether or not to include the player's current vehicle. Ignored on the server.
+Default: false
+Return:
+
+vehicle?: number
+vehicleCoords?: vector3
+
+Ox Lib
+GetFilesInDirectory
+Server
+Last updated on 6/19/2026
+
+lib.getFilesInDirectory
+
+Gets a list of all files in a specified resource directory, along with the file count
+
+
+lib.getFilesInDirectory(path, pattern)
+path: string
+The relative or absolute path to the directory where files should be listed.
+pattern: string
+Pattern to check for when searching for files.
+Returns:
+
+files: string[]
+fileCount: number
+
+Ox Lib
+GetNearbyObjects
+Shared
+Last updated on 6/19/2026
+
+lib.getNearbyObjects
+
+Get the object handle and coords of all objects within range of a set of coordinates.
+
+
+lib.getNearbyObjects(coords, maxDistance)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+Return:
+
+objects: { object: number, coords: vector3 }[]
+
+Ox Lib
+GetNearbyPeds
+Shared
+Last updated on 6/19/2026
+
+lib.getNearbyPeds
+
+Get the ped handle and coords of all peds within range of a set of coordinates.
+
+
+lib.getNearbyPeds(coords, maxDistance)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+Return:
+
+peds: { ped: number, coords: vector3 }[]
+
+Ox Lib
+GetNearbyPlayers
+Shared
+Last updated on 6/19/2026
+
+lib.getNearbyPlayers
+
+Get the player id, ped handle, and coords of all players within range of a set of coordinates.
+
+
+lib.getNearbyPlayers(coords, maxDistance, includePlayer)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+includePlayer?: boolean
+Whether or not to include the current player. Ignored on the server.
+Default: false
+Return:
+
+players: { id: number, ped: number, coords: vector3 }[]
+
+Ox Lib
+GetNearbyVehicles
+Lua
+Shared
+Last updated on 6/19/2026
+
+lib.getNearbyVehicles
+
+Get the vehicle handle and coords of all vehicles within range of a set of coordinates.
+
+
+lib.getNearbyVehicles(coords, maxDistance, includePlayerVehicle)
+coords: vector3
+The coords to check from.
+maxDistance?: number
+The max distance to check.
+Default: 2.0
+includePlayerVehicle?: boolean
+Whether or not to include the player's current vehicle. Ignored on the server.
+Default: false
+Return:
+
+vehicles: { vehicle: number, coords: vector3 }[]
+
+Ox Lib
+Grid
+Shared
+Last updated on 6/19/2026
+
+A system that divides the map into smaller 2D cells. Entries in a cell can be added, removed, and listed.
+
+GridEntry Class
+
+A table representing a grid entry with the following properties.
+
+coords: vector
+length?: number
+width?: number
+radius?: number
+lib.grid.getCellPosition
+
+Returns the position of the cell at the given point.
+
+
+lib.grid.getCellPosition(point)
+point: vector
+Returns:
+
+x: number
+y: number
+lib.grid.getCell
+
+Returns all entries in the cell that belongs to the point.
+
+
+lib.grid.getCell(point)
+point: vector
+Returns:
+
+entries: GridEntry[]
+lib.grid.getNearbyEntries
+
+Returns all entries near the point with an optional filter
+
+
+lib.grid.getNearbyEntries(point, filter)
+point: vector
+filter: function(entry: GridEntry): boolean
+Returns:
+
+entries: Array<GridEntry>
+lib.grid.addEntry
+
+Adds an entry to the grid
+
+
+lib.grid.addEntry(entry)
+entry: GridEntry
+lib.grid.removeEntry
+
+Removes and entry that was previously added to the grid
+
+
+lib.grid.removeEntry(entry)
+entry: GridEntry
+Returns:
+
+success: boolean
+
+Ox Lib
+Interface
+Interface
+Last updated on 6/20/2026
+
+If you wish to change the primary colour for the UI to better match your server's theme you can do so easily through the available convars.
+
+They don't require you to build the UI, just restart the resource.
+
+Convars:
+
+
+setr ox:primaryColor blue
+setr ox:primaryShade 8
+Changing the primary colour will change the colour in elements such as the progress bar/circle, skill check, radial menu center button and hover, dialog confirm buttons, input field focus, and more.
+
+You can find the full list of preset colours and shades here:
+
+https://v6.mantine.dev/theming/colors/#default-colors
+
+If you wish to create your own pallete I suggest following the guide on that page.
+Keep in mind doing so will require you to download the source code and build the UI.
+
+Ox Lib
+Interface
+Interface
+Alert Dialog
+Last updated on 6/20/2026
+
+Simple alert dialog that can display a message to the player.
+Returns whether the player pressed the confirm button or canceled the dialog.
+
+lib.alertDialog
+
+Lua
+JS
+Client
+Server
+
+lib.alertDialog(data)
+data: table (object)
+header: string
+Dialog title.
+content: string
+Dialog body content, supports markdown.
+centered?: boolean
+Centers the dialog vertically and horizontally.
+cancel?: boolean
+Displays a cancel button (ESC is still available if this is not defined).
+size?: 'xs' or 'sm' or 'md' or 'lg' or 'xl'
+overflow?: boolean
+labels?: table
+Allows you to define the displayed labels for cancel and/or confirm buttons.
+cancel?: string
+confirm?: string
+Returns 'confirm' if the player pressed the confirm button, otherwise if the player pressed the cancel button or has exited the dialog with ESC the return will be 'cancel'.
+
+lib.closeAlertDialog
+
+Force closes the active alert dialog and sets its return data as nil
+
+Lua
+JS
+
+lib.closeAlertDialog()
+Example
+
+Lua
+JS
+
+local alert = lib.alertDialog({
+    header = 'Hello there',
+    content = 'General Kenobi  \n Markdown support!',
+    centered = true,
+    cancel = true
+})
+print(alert)
+
+Ox Lib
+Interface
+Interface
+Clipboard
+Last updated on 6/20/2026
+
+lib.setClipboard
+
+Sets the player's clipboard to the specified string value.
+
+Will not work if focus is already taken by some NUI component.
+To create a new line use \t\n not just \n in your string.
+Lua
+JS
+
+lib.setClipboard(value)
+value: string
+
+Ox Lib
+Interface
+Interface
+Context Menu
+Last updated on 6/20/2026
+
+lib.registerContext
+
+Used for registering a context menu.
+
+Lua
+JS
+
+lib.registerContext(context)
+id: string
+Unique menu identifier, will be used to open the menu.
+title: string
+Title display in the menu; has markdown support.
+position?: 'top-left' or 'top-right' or 'bottom-left' or 'bottom-right'
+Default: 'top-right'
+menu?: string
+Menu identifier - if defined there will be a back arrow next to the menu title that will take you to the menu you defined.
+canClose: boolean
+If set to false the user won't be able to exit the menu without pressing one of the buttons.
+onExit?: function
+Function that will be ran when the user closes their context menu with ESC.
+onBack?: function
+Function that will be ran when the user presses the back button to return to a previous menu.
+options: table (object or array)
+item: key (string) or table (object)
+title?: string
+If not using keys then sets the title for the button; has markdown support.
+disabled?: boolean
+Grays out the button and makes it unclickable.
+readOnly? boolean
+Removes all hover and active styles and disables onSelect if it's defined.
+menu?: string
+Menu identifier that the button will take you to, when defined an arrow.
+onSelect: function
+Function that's ran when the button is clicked.
+icon?: string
+FontAwesome icon that will be displayed on the left side, works the same as notification and textui icons.
+Also supports image urls, png and webp files but are not recommend to use over font awesome icons.
+iconColor?: string
+Colour of the displayed icon.
+iconAnimation?: 'spin' 'spinPulse' 'spinReverse' 'pulse' 'beat' 'fade' 'beatFade' 'bounce' 'shake'
+progress?: number
+Adds a progress bar filled to this percentage
+colorScheme?: string
+Sets the color scheme of the progress bar. Current options can be found here:
+https://v6.mantine.dev/theming/colors/#default-colors
+For example: blue or teal
+arrow?: boolean
+Shows an arrow on the right side like menu does, useful when you are opening a menu from an event. Can be set to false to hide it.
+description?: string
+Description that will appear under the button title that is defined as a key; has markdown support.
+image?: string
+Url to an image that will be displayed in the button's metadata.
+metadata?: string[] or object or array
+Information that will display on the side upon hovering a button.
+label: string
+value: any
+progress?: number
+Display a progress bar in the metadata.
+colorScheme?: string
+Same as above.
+event?: string
+Event that the button is going to trigger.
+serverEvent?: string
+Server event that the button is going to trigger.
+args?: any
+Arguments that will be sent to the events or onSelect function.
+You can register as many context menus in one lib.registerContext function as you'd like.
+
+The menu can be either in the order you write it in, or sorted alphabetically.
+To sort the menu alphabetically the buttons (and/or metadata) need to be defined as keys, otherwise not using keys and instead using tables will make the menu be in the order you define it as.
+
+lib.showContext
+
+Opens a registered context menu by its id.
+
+Lua
+JS
+
+lib.showContext(id)
+id: string
+lib.hideContext
+
+Hides any currently visible context menu.
+
+Lua
+JS
+
+lib.hideContext(onExit)
+onExit: boolean
+Defines whether the onExit function for the menu should be ran or not.
+lib.getOpenContextMenu
+
+Returns the id of the currently open context menu.
+
+If no context menu is open returns nil.
+
+Lua
+JS
+
+lib.getOpenContextMenu()
+Usage Example
+
+First we register the menu with our specified options then we call the show function in the command.
+
+Avoid constantly re-registering a menu that does not depend on any outside values (A.K.A a static menu).
+
+Lua
+JS
+
+lib.registerContext({
+  id = 'some_menu',
+  title = 'Some context menu',
+  position = 'top-right',
+  options = {
+    {
+      title = 'Empty button',
+    },
+    {
+      title = 'Disabled button',
+      description = 'This button is disabled',
+      icon = 'hand',
+      disabled = true
+    },
+    {
+      title = 'Example button',
+      description = 'Example button description',
+      icon = 'circle',
+      onSelect = function()
+        print("Pressed the button!")
+      end,
+      metadata = {
+        {label = 'Value 1', value = 'Some value'},
+        {label = 'Value 2', value = 300}
+      },
+    },
+    {
+      title = 'Menu button',
+      description = 'Takes you to another menu!',
+      menu = 'other_menu',
+      icon = 'bars'
+    },
+    {
+      title = 'Event button',
+      description = 'Open a menu from the event and send event data',
+      icon = 'check',
+      event = 'test_event',
+      arrow = true,
+      args = {
+        someValue = 500
+      }
+    }
+  }
+})
+Then we can also register our second menu called other_menu
+
+Lua
+JS
+
+lib.registerContext({
+  id = 'other_menu',
+  title = 'Other context menu',
+  menu = 'some_menu',
+  onBack = function()
+    print('Went back!')
+  end,
+  options = {
+    {
+      title = 'Nothing here'
+    }
+  }
+})
+And the event that we are going to run from the some_menu menu, which is going to open another menu.
+
+Lua
+JS
+
+RegisterNetEvent('test_event', function(args)
+  lib.registerContext({
+    id = 'event_menu',
+    title = 'Event menu',
+    menu = 'some_menu',
+    options = {
+      {
+        title = 'Event value: '..args.someValue,
+      }
+    }
+  })
+  lib.showContext('event_menu')
+end)
+Lastly we register a test command to show the some_menu menu.
+
+Lua
+JS
+
+RegisterCommand('testcontext', function()
+  lib.showContext('some_menu')
+end)
+The data from the args table in the menu is passed as a first argument to the event you register.
+
+Using this event we also register a new context menu with it's own options.
+
+By defining a menu param to be the id of the first menu we can get the back arrow button next to the menu title that will take us back.
+
+Ox Lib
+Interface
+Interface
+Input Dialog
+Last updated on 6/20/2026
+
+The input dialog window allows you to take data from the user by setting input fields.
+
+lib.inputDialog
+
+Lua
+JS
+
+lib.inputDialog(heading, rows, options)
+heading: string
+rows: string[] or table (array)
+type: 'input' or 'number' or 'checkbox' or 'select' or 'slider' or 'color' or 'multi-select' or 'date' or 'date-range' or 'time' or 'textarea'
+options?: table(object)
+allowCancel: boolean
+If false the user will not be able to cancel and close the input dialog until submitted.
+If not defined, the user is able to cancel and close the input dialog.
+size?: "xs" | "sm" | "md" | "lg" | "xl";
+Field Type Properties
+
+input
+
+label: string
+description?: string
+placeholder?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: string
+password?: boolean
+min?: number
+max?: number
+number
+
+label: string
+description?: string
+placeholder?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: number
+min?: number
+max?: number
+precision?: number
+step?: number
+checkbox
+
+label: string
+checked?: boolean
+disabled?: boolean
+required?: boolean
+select and multi-select
+
+label: string
+options: table(array)
+value: string
+label?: string
+description?: string
+placeholder?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: string | table (only for multi-select)
+value of the default option.
+clearable?: boolean
+searchable?: boolean
+maxSelectedValues?: number (only for multi-select)
+Maxmimum number of options that can be selected.
+slider
+
+label: string
+placeholder?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: number
+min?: number
+max?: number
+step?: number
+color
+
+label: string
+description?: string
+placeholder?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: string
+format?: 'hex' | 'hexa' | 'rgb' | 'rgba' | 'hsl' | 'hsla';
+date
+
+label: string
+description?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: string or true
+True defaults to current date
+format?: string
+Date format to display in the field
+returnString?: boolean
+Returns the date as a string, default format is DD/MM/YYYY, but if format is defined it will use that.
+clearable?: boolean
+min?: string
+"01/01/2000"
+max?: string
+"12/12/2023"
+date-range
+
+label: string
+description?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: [string, string]
+format?: string
+Date format to display in the field
+returnString?: boolean
+Returns the date as a string, default format is DD/MM/YYYY, but if format is defined it will use that.
+clearable?: boolean
+time
+
+label: string
+description?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: string
+format?: '12' or '24'
+clearable?: boolean
+textarea
+
+label: string
+description?: string
+placeholder?: string
+icon?: string
+required? boolean
+disabled?: boolean
+default?: number
+min?: number
+Minimum amount of rows the text area will take.
+max?: number
+Maxmimum amount of rows the text area will take, when exceeded goes into overflow.
+autosize?: boolean
+If true text area will grow with content until max rows are reached.
+minLength?: number
+maxLength?: number
+The callback data is promise based meaning that the thread will not continue executing until the user either sends the data or exits the popup.
+
+The data returned will be a table (array), indexes represent the rows sent to the dialog, so if we want data from the first field that would be index 1 (0), if we want data from the third field, that would be index 3 (2), etc...
+
+Field types such as date, date-range and time return a unix timestamp on the set value.
+
+lib.closeInputDialog
+
+Force closes the active input dialog and sets its return data as nil.
+
+Lua
+JS
+
+lib.closeInputDialog()
+Usage Example
+
+Basic
+
+Lua
+JS
+
+local input = lib.inputDialog('Basic dialog', {'First row', 'Second row'})
+if not input then return end
+print(json.encode(input), input[1], input[2])
+Example image
+
+Advanced
+
+Lua
+JS
+
+local input = lib.inputDialog('Dialog title', {
+  {type = 'input', label = 'Text input', description = 'Some input description', required = true, min = 4, max = 16},
+  {type = 'number', label = 'Number input', description = 'Some number description', icon = 'hashtag'},
+  {type = 'checkbox', label = 'Simple checkbox'},
+  {type = 'color', label = 'Colour input', default = '#eb4034'},
+  {type = 'date', label = 'Date input', icon = {'far', 'calendar'}, default = true, format = "DD/MM/YYYY"}
+})
+print(json.encode(input))
+-- Getting rgb values from colour picker
+local rgb = lib.math.torgba(input[4])
+-- Transforming date timestamp to a readable format with Lua's os library (server-only)
+local timestamp = math.floor(input[5] / 1000)
+local date = os.date('%Y-%m-%d %H:%M:%S', timestamp)
