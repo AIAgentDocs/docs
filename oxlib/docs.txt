@@ -2600,3 +2600,2612 @@ local rgb = lib.math.torgba(input[4])
 -- Transforming date timestamp to a readable format with Lua's os library (server-only)
 local timestamp = math.floor(input[5] / 1000)
 local date = os.date('%Y-%m-%d %H:%M:%S', timestamp)
+
+Ox Lib
+Interface
+Interface
+Menu
+Last updated on 6/20/2026
+
+Keyboard navigation menu with specific event functions.
+
+lib.registerMenu
+
+Registers and caches a menu under the specified id.
+
+Lua
+JS
+
+lib.registerMenu(data, cb)
+data: table (object)
+id: string
+title: string
+options: table (array)
+label: string
+progress?: number
+colorScheme?: string
+icon?: string
+FontAwesome icon that will be displayed on the left side, works the same as notification and textui icons.
+Also supports image urls, png and webp files but are not recommend to use over font awesome icons.
+iconColor?: string
+iconAnimation?: 'spin' 'spinPulse' 'spinReverse' 'pulse' 'beat' 'fade' 'beatFade' 'bounce' 'shake'
+values?: string[] or { label: string, description: string }[]
+If provided creates a side scrollable list.
+When using object and setting description, the set description will be displayed in the menu tooltip.
+checked?: boolean
+Setting either true or false will make the button a checkbox, if values is also provided the button will be a scrollable list.
+description?: string
+Displays tooltip below menu on hovered item with provided description.
+defaultIndex?: number
+Sets the current index for the list to specified number.
+args?: {[string]: any}
+Allows you to pass any arguments through the button.
+If the button has values then isScroll is automatically passed.
+If the button has checked to either true or false then isCheck is automatically passed.
+close?: boolean
+If set to false, it won't close the menu upon interacting with this option.
+position?: 'top-left' or 'top-right' or 'bottom-left' or 'bottom-right'
+Default: 'top-left'
+disableInput?: boolean
+Default: false
+canClose: boolean
+If set to false the user won't be able to exit the menu without pressing one of the buttons.
+onClose: function(keyPressed?: 'Escape' | 'Backspace')
+Function that runs when the menu is exited via ESC/Backspace.
+onSelected: function(selected: number, secondary: number | boolean, args: {[string]: any})
+Function being ran when the selected button in the menu changes.
+onSideScroll: function(selected: number, scrollIndex: number, args: {[string]: any})
+Function ran whenever a scroll list item is changed.
+onCheck: function(selected: number, checked: boolean, args: {[string]: any})
+Function ran whenever a checkbox is toggled.
+cb: function(selected: number, scrollIndex: number, args: {[string]: any})
+Callback function when the menu item is pressed.
+lib.showMenu
+
+Displays the menu with the provided id.
+
+Lua
+JS
+
+lib.showMenu(id)
+id: string
+lib.hideMenu
+
+Lua
+JS
+
+lib.hideMenu(onExit)
+onExit?: boolean
+If true runs the menu's onClose function.
+lib.getOpenMenu
+
+Returns the id of the currently open menu.
+
+Lua
+JS
+
+lib.getOpenMenu()
+lib.setMenuOptions
+
+Lua
+JS
+
+lib.setMenuOptions(id, options, index)
+id: string
+options: table (object or array)
+index?: number
+If specified only sets the options table on the specified options index.
+Example:
+Replaces the 3rd index option of the specified menu
+
+Lua
+JS
+
+lib.setMenuOptions('some_menu_id', {label = 'New option', icon = 'plus'}, 3)
+Usage Example
+
+First we register the menu with our specified options then we call the show function in the command.
+
+Avoid constantly re-registering a menu that does not depend on any outside values (A.K.A a static menu).
+
+Lua
+JS
+
+lib.registerMenu({
+    id = 'some_menu_id',
+    title = 'Menu title',
+    position = 'top-right',
+    onSideScroll = function(selected, scrollIndex, args)
+        print("Scroll: ", selected, scrollIndex, args)
+    end,
+    onSelected = function(selected, secondary, args)
+        if not secondary then
+            print("Normal button")
+        else
+            if args.isCheck then
+                print("Check button")
+            end
+            if args.isScroll then
+                print("Scroll button")
+            end
+        end
+        print(selected, secondary, json.encode(args, {indent=true}))
+    end,
+    onCheck = function(selected, checked, args)
+        print("Check: ", selected, checked, args)
+    end,
+    onClose = function(keyPressed)
+        print('Menu closed')
+        if keyPressed then
+            print(('Pressed %s to close the menu'):format(keyPressed))
+        end
+    end,
+    options = {
+        {label = 'Simple button', description = 'It has a description!'},
+        {label = 'Checkbox button', checked = true},
+        {label = 'Scroll button with icon', icon = 'arrows-up-down-left-right', values={'hello', 'there'}},
+        {label = 'Button with args', args = {someArg = 'nice_button'}},
+        {label = 'List button', values = {'You', 'can', 'side', 'scroll', 'this'}, description = 'It also has a description!'},
+        {label = 'List button with default index', values = {'You', 'can', 'side', 'scroll', 'this'}, defaultIndex = 5},
+        {label = 'List button with args', values = {'You', 'can', 'side', 'scroll', 'this'}, args = {someValue = 3, otherValue = 'value'}},
+    }
+}, function(selected, scrollIndex, args)
+    print(selected, scrollIndex, args)
+end)
+RegisterCommand('testmenu', function()
+    lib.showMenu('some_menu_id')
+end)
+Ox Lib
+Interface
+Interface
+Notifications
+Last updated on 6/20/2026
+
+lib.notify
+
+Custom notifications with a lot of styling options.
+
+Lua
+JS
+Client
+Server
+
+lib.notify(data)
+id?: string
+When set the current notification will be unique and only shown once on screen when spammed.
+title?: string
+Must provide if there is no description
+description?: string
+Must provide if there is no title
+Markdown support
+duration?: number
+Default: 3000
+showDuration?: boolean
+Default: true
+position?: 'top' or 'top-right' or 'top-left' or 'bottom' or 'bottom-right' or 'bottom-left' or 'center-right' or 'center-left'
+Default: 'top-right'
+type?: 'inform' or 'error' or 'success'or 'warning'
+Default: 'inform'
+style?: table (object)
+React CSS styling format
+icon?: string
+Font Awesome 6 icon name
+iconColor?: string
+CSS Legal Color Values
+iconAnimation?: 'spin' 'spinPulse' 'spinReverse' 'pulse' 'beat' 'fade' 'beatFade' 'bounce' 'shake'
+alignIcon?: 'top' or 'center'
+Default: 'center'
+sound?: table (object)
+bank?: string
+name of audio bank that contains the soundset provided
+set: string
+Soundset the soundname is a member of.
+name: string
+Setting iconColor will get rid of the contrasted icon colour and it's circular background.
+
+Usage Example
+
+Standard
+
+Lua
+JS
+
+lib.notify({
+    title = 'Notification title',
+    description = 'Notification description',
+    type = 'success'
+})
+notification
+
+Custom
+
+Lua
+JS
+
+lib.notify({
+    id = 'some_identifier',
+    title = 'Notification title',
+    description = 'Notification description',
+    showDuration = false,
+    position = 'top',
+    style = {
+        backgroundColor = '#141517',
+        color = '#C1C2C5',
+        ['.description'] = {
+          color = '#909296'
+        }
+    },
+    icon = 'ban',
+    iconColor = '#C53030'
+})
+
+Ox Lib
+Interface
+Interface
+Progress
+Last updated on 6/20/2026
+
+lib.progressBar
+
+Displays a running progress bar.
+
+Lua
+JS
+
+lib.progressBar(data)
+duration: number
+label: string
+useWhileDead?: boolean
+allowRagdoll?: boolean
+allowSwimming?: boolean
+allowCuffed?: boolean
+allowFalling?: boolean
+canCancel?: boolean
+anim?: table (object)
+dict?: string
+Must specify either scenario or dict
+clip: string
+flag?: number
+Default: 49
+blendIn?: float
+Default: 3.0
+blendOut?: float
+Default: 1.0
+duration?: number
+Default: -1
+playbackRate?: number
+Default: 0
+lockX?: boolean
+lockY?: boolean
+lockZ?: boolean
+scenario?: string
+Must specify either scenario or dict
+playEnter?: boolean
+Default: true
+prop?: table (object or array)
+[ If you want to define multiple props, you can pass them as individual tables (array of objects) ]
+model: hash
+bone?: number
+Default: 60309
+pos: table
+x: number
+y: number
+z: number
+rot: table (object)
+x: number
+y: number
+z: number
+rotOrder?: number
+The order in which yaw, pitch and roll is applied.
+Default: 0
+disable?: table (object)
+move?: boolean
+car?: boolean
+combat?: boolean
+mouse?: boolean
+sprint?: boolean
+Usage Example
+
+Lua
+JS
+
+if lib.progressBar({
+    duration = 2000,
+    label = 'Drinking water',
+    useWhileDead = false,
+    canCancel = true,
+    disable = {
+        car = true,
+    },
+    anim = {
+        dict = 'mp_player_intdrink',
+        clip = 'loop_bottle'
+    },
+    prop = {
+        model = `prop_ld_flow_bottle`,
+        pos = vec3(0.03, 0.03, 0.02),
+        rot = vec3(0.0, 0.0, -1.5)
+    },
+}) then print('Do stuff when complete') else print('Do stuff when cancelled') end
+progress_bar
+
+lib.progressCircle
+
+Similar to lib.progressBar except it displays a circle and you can define a position.
+
+Lua
+JS
+
+lib.progressCircle(data)
+duration: number
+label?: string
+position?: 'middle' or 'bottom'
+Default: 'middle'
+useWhileDead?: boolean
+allowRagdoll?: boolean
+allowSwimming?: boolean
+allowCuffed?: boolean
+allowFalling?: boolean
+canCancel?: boolean
+anim?: table (object)
+dict?: string
+Must specify either scenario or dict
+clip: string
+flag?: number
+Default: 49
+blendIn?: float
+Default: 3.0
+blendOut?: float
+Default: 1.0
+duration?: number
+Default: -1
+playbackRate?: number
+Default: 0
+lockX?: boolean
+lockY?: boolean
+lockZ?: boolean
+scenario?: string
+Must specify either scenario or dict
+playEnter?: boolean
+Default: true
+prop?: table (object or array)
+[ If you want to define multiple props, you can pass them as individual tables (array of objects) ]
+model: hash
+bone?: number
+Default: 60309
+pos: table
+x: number
+y: number
+z: number
+rot: table (object)
+x: number
+y: number
+z: number
+rotOrder?: number
+The order in which yaw, pitch and roll is applied.
+Default: 0
+disable?: table (object)
+move?: boolean
+car?: boolean
+combat?: boolean
+mouse?: boolean
+sprint?: boolean
+Usage Example
+
+Lua
+JS
+
+if lib.progressCircle({
+    duration = 2000,
+    position = 'bottom',
+    useWhileDead = false,
+    canCancel = true,
+    disable = {
+        car = true,
+    },
+    anim = {
+        dict = 'mp_player_intdrink',
+        clip = 'loop_bottle'
+    },
+    prop = {
+        model = `prop_ld_flow_bottle`,
+        pos = vec3(0.03, 0.03, 0.02),
+        rot = vec3(0.0, 0.0, -1.5)
+    },
+}) then print('Do stuff when complete') else print('Do stuff when cancelled') end
+progress_circle
+
+lib.progressActive
+
+Returns true if a progress bar is currently active.
+
+Lua
+JS
+
+lib.progressActive()
+lib.cancelProgress
+
+If there is a progress bar active and the progress bar can be cancelled then it cancels it.
+
+Lua
+JS
+
+lib.cancelProgress()
+
+Ox Lib
+Interface
+Interface
+Radial Menu
+Last updated on 6/20/2026
+
+Radial menu has a global menu that's by default accessed with z and only displays when there is at least one item.
+You can add and remove items from the global menu using lib.addRadialItem and lib.removeRadialItem.
+Use lib.registerRadial for creating sub menus and use the menu property on the items to open those sub menus.
+lib.addRadialItem
+
+Item or array of items added to the global radial menu, or to a sub menu if parentMenuId is specified.
+
+Lua
+JS
+
+lib.addRadialItem(items, parentMenuId)
+items: table (object or array)
+id: string
+Id that is used for removing options.
+icon: string
+Either a font awesome or a custom URI.1
+iconWidth?: number
+iconHeight?: number
+In the case of a custom URI, adjust the size of the icon.
+label: string
+Label uses \n to insert a newline
+menu?: string
+Id of a menu to open.
+onSelect: function(currentMenu: string | nil, itemIndex: number) | string
+Function that's ran when a user clicks the item.
+keepOpen?: boolean
+parentMenuId?: string
+If specified, adds the item(s) to the sub menu with this id instead of the global menu.
+lib.removeRadialItem
+
+Id of an item to be removed from the global menu, or from a sub menu if parentMenuId is specified.
+
+Lua
+JS
+
+lib.removeRadialItem(id, parentMenuId)
+id: string
+parentMenuId?: string
+If specified, removes the item from the sub menu with this id instead of the global menu.
+lib.clearRadialItems
+
+Removes all items from the radial menu.
+
+Lua
+JS
+
+lib.clearRadialItems()
+lib.registerRadial
+
+Registers a radial sub menu with predefined options.
+
+Lua
+JS
+
+lib.registerRadial(radial)
+radial: table (object)
+id: string
+Unique menu id used to open with menu prop on an item.
+items: array
+icon: string
+label: string
+Label uses \n to insert a newline
+menu?: string
+Id of a menu to open.
+onSelect?: function(currentMenu: string | nil, itemIndex: number) | string
+Function that's ran when a user clicks the item.
+lib.hideRadial
+
+Hides the radial menu if one is open.
+
+Lua
+JS
+
+lib.hideRadial()
+lib.disableRadial
+
+Disallow players from opening the radial menu.
+
+Lua
+JS
+
+lib.disableRadial(state)
+state: boolean
+Whether or not radial menu should be disabled
+lib.getCurrentRadialId
+
+Returns the id of the currently open radial menu.
+
+Lua
+JS
+
+local id = lib.getCurrentRadialId()
+Usage Example
+
+When adding radial menu items whether they are global or for a sub menu, make sure to stick to short as possible labels as long labels will look out of place and should not be used with the radial menu because of its density.
+
+Here's a use case example with some global options and an option utilising the lib's points system.
+
+Lua
+JS
+
+exports('myMenuHandler', function(menu, item)
+    print(menu, item)
+    if menu == 'police_menu' and item == 1 then
+        print('Handcuffs')
+    end
+end)
+lib.registerRadial({
+  id = 'police_menu',
+  items = {
+    {
+      label = 'Handcuff',
+      icon = 'handcuffs',
+      onSelect = 'myMenuHandler'
+    },
+    {
+      label = 'Frisk',
+      icon = 'hand'
+    },
+    {
+      label = 'Fingerprint',
+      icon = 'fingerprint'
+    },
+    {
+      label = 'Jail',
+      icon = 'bus'
+    },
+    {
+      label = 'Search',
+      icon = 'magnifying-glass',
+      onSelect = function()
+        print('Search')
+      end
+    }
+  }
+})
+lib.addRadialItem({
+  {
+    id = 'police',
+    label = 'Police',
+    icon = 'shield-halved',
+    menu = 'police_menu'
+  },
+  {
+    id = 'business_stuff',
+    label = 'Business',
+    icon = 'briefcase',
+    onSelect = function()
+      print("Business")
+    end
+  }
+})
+local coords = GetEntityCoords(cache.ped)
+local point = lib.points.new(coords, 5)
+function point:onEnter()
+  lib.addRadialItem({
+    id = 'garage_access',
+    icon = 'warehouse',
+    label = 'Garage',
+    onSelect = function()
+      print('Garage')
+    end
+  })
+end
+function point:onExit()
+  lib.removeRadialItem('garage_access')
+end
+
+Ox Lib
+Interface
+Interface
+Skill Check
+Last updated on 6/20/2026
+
+lib.skillCheck
+
+Runs a skill check with the defined difficulty.
+
+Lua
+JS
+
+lib.skillCheck(difficulty, inputs)
+difficulty: 'easy' or 'medium' or 'hard' or table
+Preset difficulties:
+'easy' - { areaSize: 50, speedMultiplier: 1 }
+'medium' - { areaSize: 40, speedMultiplier: 1.5 }
+'hard' - { areaSize: 25, speedMultiplier: 1.75 }
+Custom difficulties can be set by sending an object instead of one of the preset strings above
+areaSize: number
+Size of the success area in degrees
+speedMultiplier: number
+Multiplier for the speed of the indicator
+inputs?: string[]
+A random key will be picked from the inputs table for each skill check
+If no inputs are defined the key is defaulted to e
+lib.skillCheckActive
+
+Returns true if a skill check is currently active.
+
+Lua
+JS
+
+lib.skillCheckActive()
+lib.cancelSkillCheck
+
+Cancels the currently ongoing skill check.
+
+Lua
+JS
+
+lib.cancelSkillCheck()
+Usage Example
+
+Lua
+JS
+
+local success = lib.skillCheck({'easy', 'easy', {areaSize = 60, speedMultiplier = 2}, 'hard'}, {'w', 'a', 's', 'd'})
+
+
+Ox Lib
+Interface
+Interface
+TextUI
+Last updated on 6/20/2026
+
+lib.showTextUI
+
+Show the TextUI window.
+
+DO NOT run this function every tick, it's intended to be used as a toggle.
+
+Lua
+JS
+
+lib.showTextUI(text, options)
+text: string
+options?: table
+position?: 'right-center' or 'left-center' or 'top-center' or 'bottom-center'
+Default: 'right-center'
+icon?: string or table (array)
+iconColor?: string
+iconAnimation?: 'spin' 'spinPulse' 'spinReverse' 'pulse' 'beat' 'fade' 'beatFade' 'bounce' 'shake'
+style?: React.CSSProperties
+alignIcon?: 'top' or 'center'
+Default: 'center'
+lib.hideTextUI
+
+Hides the currently visible TextUI window
+
+Lua
+JS
+
+lib.hideTextUI()
+lib.isTextUIOpen
+
+Returns whether Text UI is opened or not. The currently displayed text is returned as the second value.
+
+Lua
+JS
+
+local isOpen, text = lib.isTextUIOpen()
+Usage Example
+
+Basic
+
+Lua
+JS
+
+lib.showTextUI('[E] - Fuel vehicle')
+basic_example
+
+Custom styling
+
+Lua
+JS
+
+lib.showTextUI('[E] - Pick apple', {
+    position = "top-center",
+    icon = 'hand',
+    style = {
+        borderRadius = 0,
+        backgroundColor = '#48BB78',
+        color = 'white'
+    }
+})
+
+Ox Lib
+Locale
+Shared
+Last updated on 6/19/2026
+
+Allows servers to set a preferred language and attempt to load locale files in any resources using the module. Locale files should use the ISO Language Code and be saved as ./locales/langcode.json
+
+Setup
+
+To change the preferred language from English, add the convar to your server.cfg and change en to the desired language code.
+
+
+setr ox:locale en
+Create a locales directory and a file for your language.
+
+
+{
+  "grand_theft_auto": "grand theft auto",
+  "male": "male",
+  "female": "female",
+  "suspect_sex": "suspect is %s"
+}
+
+{
+  "grand_theft_auto": "vol de voiture",
+  "male": "homme",
+  "female": "femme",
+  "suspect_sex": "le suspect est %s"
+}
+
+files {
+  'locales/*.json'
+}
+Usage
+
+Initialise the locale module in your resource (once).
+
+Lua
+JS
+
+lib.locale()
+Format your strings with the new locale global. Additional arguments can be sent to format the locale output.
+
+Lua
+JS
+
+locale(str, ...)
+str: string
+vararg?: string or number
+Example
+Lua
+JS
+
+-- Load the locale module
+lib.locale()
+SetInterval(function()
+    print(locale('grand_theft_auto'))
+    print(locale('suspect_sex', locale('male')))
+end, 5000)
+Phrases
+
+You can create a locale string that references other locales to construct a phrase, rather than calling locale multiple times.
+
+
+{
+  "hello": "hello %s",
+  "my_name_is": "my name is %s",
+  "hello_my_name_is": "${hello}! ${my_name_is}."
+}
+Lua
+JS
+
+print(locale('hello_my_name_is', 'doka', 'linden'))
+lib.getLocale
+
+Gets a locale string from another resource and adds it to the dict.
+
+
+lib.getLocale(resource, key)
+resource: string
+key: string
+
+Ox Lib
+Logger
+Server
+Last updated on 6/19/2026
+
+lib.logger
+
+
+lib.logger(source, event, message, ...)
+source: number or string
+Preferably an active player id, otherwise an identifier, or wherever else it originated from.
+event: string
+A name for the log event (i.e. the trigerring event or a description)
+message: string
+The content for the log.
+vararg: string
+Additional arguments are converted to tags for additional filtering and searching.
+
+Example
+
+local vehicle = Ox.CreateVehicle(false, `sultanrs`, vector4(-56.479122, -1116.870362, 26.432250, 0.000030517578))
+lib.logger(-1, 'CreateVehicle', json.encode(vehicle))
+Datadog
+
+Create your Datadog account
+
+You will receive a free 14 day trial, otherwise refer to their pricing guide.
+Free accounts are limited, however logs will still be retained for 14 days.
+
+Create an API key
+
+This is a UUID used to submit logs to your Datadog organisation.
+
+Config
+
+Set your API key and Datadog site using the following convars.
+
+
+set datadog:key "yourapikey"
+set datadog:site "datadoghq.com"
+Grafana Loki
+
+Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus.
+It is designed to be very cost effective and easy to operate.
+
+Cloud
+Self-hosted
+Has free tier with some restrictions
+Easy to manage
+Easier to setup
+Mostly managed by Grafana
+Create your Grafana account
+
+Head to My Account
+
+Setup Loki
+
+Find the Loki section in your account panel, and click "Details". Generate a password and save the API key, as well as your user and url.
+
+Config
+
+Use the following convars to set your logging service, endpoint, and authentication details.
+
+
+set ox:logger "loki"
+set loki:user "<insert your user>"
+set loki:password "<insert the api key or password>"
+set loki:endpoint "<insert loki url without http:// or https://>"
+Fivemanage
+
+Fivemanage is an easy-to-use, all-in-one SaaS for game servers that provides logging.
+
+Create an account
+
+Sign up at Fivemanage.
+
+Upgrading to Hobby or Pro tier (optional)
+
+Logging is included in the free tier, but with limited storage and retention.
+
+If you decide to upgrade, you'll get a 14-day free trial if you do not already have a subscription. You can find more information here and on the pricing page.
+
+Create a new token
+
+You'll need to create a new token with the type Logs.
+
+Config
+
+
+set ox:logger "fivemanage"
+set fivemanage:key "YOUR_API_KEY"
+
+Ox Lib
+Marker
+Client
+Last updated on 6/19/2026
+
+lib.marker
+
+Simple way to create markers
+
+Marker Class
+
+A table representing a marker with the following properties.
+
+type: number or string
+This field accepts either a numerical value representing the marker ID or a string containing the name of a marker as documented on FiveM Docs.
+coords?: vector3
+width?: number
+height?: number
+color?: { r: number, g: number, b: number, a: number}
+direction?: vector3
+rotation?: vector3
+lib.marker.new
+
+
+lib.marker.new(options)
+Returns: Marker
+Usage Example
+
+
+local marker = lib.marker.new({
+	type = 1,
+	coords = GetEntityCoords(cache.ped),
+	color = { r = 255, g = 0, b = 0, a = 200 },
+})
+Citizen.CreateThread(function()
+	while true do
+		marker:draw()
+		Citizen.Wait(1)
+	end
+end)
+Interactive Example
+
+
+local center = vec3(430.452759, -1026.108032, 27.846140)
+local uiText = "Press [E] to get notified"
+local point = lib.points.new({
+  coords = center,
+  distance = 20,
+})
+local marker = lib.marker.new({
+  coords = center,
+  type = 1,
+})
+function point:nearby()
+  marker:draw()
+  if self.currentDistance < 1.5 then
+    if not lib.isTextUIOpen() then
+      lib.showTextUI("Press [E] to get notified")
+    end
+    if IsControlJustPressed(0, 51) then
+      lib.notify({
+        description = "Hello, World!"
+      })
+    end
+  else
+  local isOpen, currentText = lib.isTextUIOpen()
+    if isOpen and currentText == uiText then
+      lib.hideTextUI()
+    end
+  end
+end
+
+Ox Lib
+Math
+Shared
+Last updated on 6/19/2026
+
+lib.math
+
+Extends the standard Lua math table with extra functions.
+
+
+math = lib.math
+math.toscalars
+
+Takes a string and returns a set of scalar values.
+
+
+math.toscalars(input, min, max, round)
+input: string
+min?: number
+max?: number
+round?: boolean
+Return:
+
+...: number
+math.tovector
+
+Takes a string or table and returns a vector value, or a number if only one value was found.
+
+
+math.tovector(input, min, max, round)
+input: string or table
+min?: number
+max?: number
+round?: boolean
+Return:
+
+value: number or vector2 or vector3 or vector4
+math.normaltorotation
+
+Takes a surface normal and tries to convert it to a vector3 rotation.
+
+
+math.normaltorotation(input)
+input: vector3
+Return:
+
+value: vector3
+math.torgba
+
+Takes a string or table and returns a vector value, or a number if only one value was found.
+Values are rounded and must be within the range of 0-255.
+
+
+math.torgba(input)
+input: string or table
+Return:
+
+value: number or vector2 or vector3 or vector4
+math.hextorgb
+
+Takes a hexadecimal string and returns three integers.
+
+
+math.hextorgb(input)
+input: string
+A hexadecimal value, e.g. 'eb4034'.
+Return:
+
+r: number
+g: number
+b: number
+math.tohex
+
+Takes a number or string and formats it as a hexadecimal string.
+
+
+math.tohex(n, upper)
+n: number or string
+upper?: boolean
+Return:
+
+hex: string
+math.groupdigits
+
+Takes a number and formats it into grouped digits.
+
+
+math.groupdigits(number, seperator)
+number: number
+seperator?: string
+Default: ,
+Return:
+
+groupedDigits: string
+math.clamp
+
+Clamps a number between a lower and upper limit.
+
+
+math.clamp(number, lower, upper)
+number: number
+lower: number
+upper: number
+Return:
+
+number: number
+math.round
+
+Rounds a number to a whole number or to the specified number of decimal places.
+
+
+math.round(value, places)
+value: number | string
+places?: number | string
+Return:
+
+roundedValue: number
+math.interp
+
+Calculates an intermediate value between start and finish based on the interpolation factor.
+
+
+math.interp(start, finish, factor)
+generic T: number | vector2 | vector3 | vector4
+start: T
+finish: T
+factor: number
+The interpolation factor between 0 and 1.
+Return:
+
+result: T
+math.lerp
+
+Linearly interpolates between two values over a specified duration, returning an iterator function that will run once per game-frame.
+
+
+math.lerp(start, finish, duration)
+generic T: number | table | vector2 | vector3 | vector4
+start: T
+The starting value of the interpolation
+finish: T
+The ending value of the interpolation
+duration: number
+The duration over which to interpolate over in milliseconds.
+Return:
+
+iteratorFunction: fun(): T, number
+
+Ox Lib
+PlayAnim
+Client
+Last updated on 6/19/2026
+
+lib.playAnim
+
+Plays an animation with the given arguments. This function also automatically loads and unloads the given animation dictionary so you don't have to manage that. This function can directly replace TaskPlayAnim.
+
+
+lib.playAnim(ped, animDictionary, animationName, blendInSpeed, blendOutSpeed, duration, animFlags, startPhase, phaseControlled, controlFlags, overrideCloneUpdate)
+ped: number
+The ped that will play the animation
+animDictionary: string
+The animation dictionary.
+animationName: string
+The name of the animation within the dictionary.
+blendInSpeed?: number
+The speed to blend in the animation with.
+Default: 8.0
+blendOutSpeed?: number
+The speed to blend out the animation with.
+Default: 8.0
+duration?: number
+The amount of milliseconds the animations will take. -1 to play until cancelled.
+Default: -1
+animFlags?: AnimationFlags
+The animation flags. You can find these here
+Default: 0
+startPhase?: number
+At what percentage of the animation it should start at. (Number between 0.0 and 1.0)
+Default: 0.0
+phaseControlled?: boolean
+Whether the startPhase is used.
+Default: false
+controlFlags?: ControlFlags
+Flags to manipulate how the character is controlled by the animation. You can find these here
+Default: 0
+overrideCloneUpdate?: boolean
+When true, other clients can't see the animation playing on the ped, even if the ped is not the client itself.
+Default: false
+
+Ox Lib
+Points
+Lua
+Client
+Last updated on 6/19/2026
+
+Simple and centralised distance checking, supporting callbacks when entering, leaving, and standing in-range of set coordinates.
+
+CPoint Class
+
+A table representing a point with the following properties.
+
+id: number
+coords: vector3
+distance: number
+The distance for the player to be "inside" a point (i.e. the point's radius).
+currentDistance: number
+The players current distance from the centre of the point.
+isClosest?: boolean
+remove: function()
+Removes the point from the points registry.
+onEnter?: function(self: CPoint)
+Function triggered when player gets within distance of the point
+onExit?: function(self: CPoint)
+Function triggered when player goes beyond distance of the point
+nearby?: function(self: CPoint)
+Function triggered on frame when within distance of the point
+lib.points.new
+
+
+lib.points.new(data)
+data: table
+coords: vector3
+distance: number
+Returns:
+
+point: CPoint
+Usage Example
+
+
+local point = lib.points.new({
+    coords = GetEntityCoords(cache.ped),
+    distance = 5,
+    dunak = 'nerd',
+})
+function point:onEnter()
+    print('entered range of point', self.id)
+end
+function point:onExit()
+    print('left range of point', self.id)
+end
+function point:nearby()
+    DrawMarker(2, self.coords.x, self.coords.y, self.coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 1.0, 1.0, 1.0, 200, 20, 20, 50, false, true, 2, false, nil, nil, false)
+    if self.currentDistance < 1 and IsControlJustReleased(0, 38) then
+        print('inside marker', self.id, 'dunak is a '.. self.dunak)
+    end
+end
+lib.points.getAllPoints
+
+Get a table of all points created in the resource.
+
+
+lib.points.getAllPoints()
+Return:
+
+points: CPoint[]
+lib.points.getNearbyPoints
+
+Get an array of all points in range of the player.
+
+
+lib.points.getNearbyPoints()
+Return:
+
+nearbyPoints: CPoint[]
+lib.points.getClosestPoint
+
+Get the data for the closest point to the player.
+
+
+lib.points.getClosestPoint()
+Return:
+
+closestPoint?: CPoint
+
+Ox Lib
+Print
+Shared
+Last updated on 6/19/2026
+
+Prints to console conditionally based on convars set. Different level prints are colored and labeled. Resource name is always included.
+
+lib.print
+
+
+lib.print.error(...)
+lib.print.warn(...)
+lib.print.info(...)
+lib.print.verbose(...)
+lib.print.debug(...)
+vararg: any
+What to print in console. Converts tables into a pretty-print format.
+Example
+
+
+lib.print.warn("query latency high: ", latency)
+Levels
+
+Error
+
+Indicates a failure in the system.
+Warn
+
+Warns of an unexpected condition, or a state which is likely to cause an error in the future.
+Info
+
+Information about high-level, successful operations.
+Verbose
+
+More detailed information containing intermediate steps of high-level, operations
+Debug - Used by developers to understand the system and may contain detailed trace information. Should generally not be turned on when not debugging.
+
+Config
+
+Use the following convars to set your print level. Prints less severe than the current level will not be executed. For example, a level of info will print error, warn, and info, but not verbose nor debug. Defaults to info if not set. Resource specific print levels override the global convar.
+
+
+set ox:printlevel "info"
+set ox:printlevel:ox_inventory "warn"
+set ox:printlevel:<resourceName> "<level>"
+
+Ox Lib
+Raycast
+Client
+Last updated on 6/19/2026
+
+lib.raycast.fromCoords
+
+Starts a shapetest originating from starting coordinates and ending at destination coordinates.
+
+
+lib.raycast.fromCoords(coords, destination, flags, ignore)
+coords: vector3
+Starting coords for raycast
+destination: vector3
+Destination coords for raycast
+flags?: number
+See: https://docs.fivem.net/natives/?_0x377906D8A31E5586
+Default: 511
+ignore?: number
+A bit mask with bits 1, 2, 4, or 7 relating to collider types. 4 and 7 are usually used.
+Default: 4
+Return:
+
+hit: boolean
+Whether or not an entity was hit
+entityHit: number
+Entity handle of hit entity
+endCoords: vector3
+Closest coords to where the raycast hit
+surfaceNormal: vector3
+Normal to the surface that was hit
+materialHash: number
+lib.raycast.fromCamera
+
+Starts a shapetest originating from the camera, extending to ~10m by default.
+
+
+lib.raycast.fromCamera(flags, ignore, distance)
+flags?: number
+See: https://docs.fivem.net/natives/?_0x377906D8A31E5586
+Default: 511
+ignore?: number
+A bit mask with bits 1, 2, 4, or 7 relating to collider types. 4 and 7 are usually used.
+Default: 4
+distance?: number
+Default: 10
+Return:
+
+hit: boolean
+Whether or not an entity was hit
+entityHit: number
+Entity handle of hit entity
+endCoords: vector3
+Closest coords to where the raycast hit
+surfaceNormal: vector3
+Normal to the surface that was hit
+materialHash: number
+lib.raycast.cam
+
+lib.raycast.cam is depreciated alias for lib.raycast.fromCamera and may be removed at any time. Use lib.raycast.fromCamera instead!
+
+Ox Lib
+Require
+Shared
+Last updated on 6/19/2026
+
+This module is always loaded by default.
+
+require
+
+Loads the given module. The function starts by indexing the loaded table to determine whether modname is already loaded. If it is, then require returns the value stored at loaded[modname].
+
+Module names are the path to a file relative to the resource.
+The module name must point to a .lua file.
+Use . to separate directories in a path.
+Modules can be loaded from external resources using @resource.modname.
+
+require 'modname'
+Client modules must be defined in the file section of the resource manifest.
+
+
+file 'modname.lua'
+-- or
+files {
+  'modname.lua'
+}
+Usage Example
+
+
+- resources/
+  - mylib/
+    - import.lua
+    - data/
+      - events.lua
+  - myresource/
+    - server.lua
+
+local mylib = {
+  events = require 'data.events'
+}
+print('Loaded mylib')
+return mylib
+
+return {
+  disconnect = 'onPlayerDropped',
+}
+
+local mylib = require '@mylib.import'
+print(mylib.events.disconnect)
+lib.load
+
+Loads and runs a Lua file at the given path. Unlike require, the chunk is not cached for future use.
+
+
+lib.load(filePath, env)
+filePath: string
+A path to the Lua file, using the same rules as require.
+env?: table
+A table to use as the global environment, defaulting to _ENV.
+Usage Example
+
+
+local events = lib.load('data.events')
+print('Loaded events')
+
+return {
+  disconnect = 'onPlayerDropped',
+}
+lib.loadJson
+
+Loads a JSON file at the given path and decodes it as a table.
+
+
+lib.loadJson(filePath)
+filePath: string
+A path to the Lua file, using the same rules as require.
+Usage Example
+
+
+local events = lib.loadJson('data.events')
+print('Loaded events')
+
+{
+  "disconnect": "onPlayerDropped"
+}
+Ox Lib
+Scaleform
+Client
+Last updated on 6/19/2026
+
+lib.scaleform:new
+
+Constructs a new instance of the scaleform class.
+
+
+lib.scaleform:new(data)
+data: table | string
+name: string
+fullScreen?: boolean
+x?: number
+y?: number
+width?: number
+height?: number
+renderTarget?: table
+name: string
+model: string | number
+Returns:
+
+scaleform: Scaleform
+
+scaleform: number
+draw: boolean
+target: number
+targetName: string
+sfHandle?: number
+fullScreen: boolean
+Methods:
+
+callMethod: function(name: string, args: (number | string | boolean)[], returnValue?: string)
+setFullScreen: function(isFullscreen: boolean)
+setProperties: function(x: number, y: number, width: number, height: number)
+setRenderTarget: function(name: string, model: string | number)
+isDrawing: function
+draw: function
+startDrawing: function
+stopDrawing: function
+dispose: function
+Usage Example
+
+
+local scaleform = lib.scaleform:new({
+  name = 'scaleform',
+  fullScreen = boolean,
+  x = 1.0,
+  y = 1.0,
+  width = 2.0,
+  height = 2.0,
+  renderTarget = {
+    name = 'target',
+    model = `model_name`
+  }
+})
+-- Call a Scaleform Method
+scaleform:callMethod('method', { 1, 2, 3 })
+-- Set Fullscreen Scaleform
+scaleform:setFullScreen(false)
+-- Set Scaleform Properties (x, y, width, height)
+scaleform:setProperties(1.0, 1.0, 2.0, 2.0)
+-- Set Scaleform Render Target
+scaleform:setRenderTarget('target', `model_name`)
+-- Get Drawing State
+local state = scaleform:isDrawing()
+-- Draw
+scaleform:draw()
+-- Start Drawing
+scaleform:startDrawing()
+-- Stop Drawing
+scaleform:stopDrawing()
+-- Dispose of Scaleform
+scaleform:dispose()
+
+Ox Lib
+Selector
+Shared
+Last updated on 6/19/2026
+
+A weighted random selection utility class that supports multiple named sets of items with optional weight-based probability selection.
+
+OxSelector Class
+
+The OxSelector class provides methods for managing and selecting items from one or more sets, with support for both uniform random selection and weighted random selection.
+
+OxSelectorItem
+
+Each item in a selector set is defined as a tuple containing a weight and a value.
+
+[1]: number
+The weight of the item (must be 0 or greater).
+[2]: any
+The value to return when selected.
+lib.selector
+
+Creates a new OxSelector instance.
+
+
+local selector = lib.selector:new(sets)
+Parameters
+
+sets: OxSelectorItem[] or table<string, OxSelectorItem[]>
+A single array of items (uses the default set), or a table of named sets.
+Returns
+
+OxSelector
+The newly created selector instance.
+Example
+
+
+-- Single set (default)
+local selector = lib.selector:new({
+    { 10, 'common_item' },
+    { 5, 'uncommon_item' },
+    { 1, 'rare_item' },
+})
+-- Multiple named sets
+local selector = lib.selector:new({
+    weapons = {
+        { 50, 'WEAPON_PISTOL' },
+        { 30, 'WEAPON_SMG' },
+        { 10, 'WEAPON_RIFLE' },
+        { 5, 'WEAPON_RPG' },
+    },
+    vehicles = {
+        { 60, 'sultan' },
+        { 30, 'elegy2' },
+        { 10, 'zentorno' },
+    },
+})
+OxSelector:getRandom
+
+Get a random item from a set using uniform probability (ignores weights).
+
+
+selector:getRandom(setName)
+Parameters
+
+setName?: string
+The name of the set to select from. Defaults to 'default' if not provided.
+Returns
+
+any or nil
+The selected item's value, or nil if the set does not exist.
+Example
+
+
+local selector = lib.selector:new({
+    { 100, 'apple' },
+    { 1, 'banana' },
+})
+-- Each item has equal chance of being selected (50/50)
+local item = selector:getRandom()
+print(item) -- 'apple' or 'banana'
+OxSelector:getRandomWeighted
+
+Get a random item from a set using weighted probability.
+
+
+selector:getRandomWeighted(setName)
+Parameters
+
+setName?: string
+The name of the set to select from. Defaults to 'default' if not provided.
+Returns
+
+any or nil
+The selected item's value, or nil if the set does not exist or total weight is 0.
+Example
+
+
+local selector = lib.selector:new({
+    { 100, 'apple' },  -- ~99% chance
+    { 1, 'banana' },   -- ~1% chance
+})
+-- Items are selected based on their weight
+local item = selector:getRandomWeighted()
+print(item) -- Most likely 'apple'
+OxSelector:getRandomAmount
+
+Get multiple random items from a set using uniform probability.
+
+
+selector:getRandomAmount(setName, count)
+Parameters
+
+setName?: string
+The name of the set to select from. Defaults to 'default' if not provided.
+count: number
+The number of items to select (must be a positive number).
+Returns
+
+any[]
+An array of selected item values.
+Example
+
+
+local selector = lib.selector:new({
+    { 10, 'item_a' },
+    { 10, 'item_b' },
+    { 10, 'item_c' },
+})
+local items = selector:getRandomAmount(nil, 5)
+-- Returns 5 randomly selected items with equal probability
+OxSelector:getRandomWeightedAmount
+
+Get multiple random items from a set using weighted probability.
+
+
+selector:getRandomWeightedAmount(setName, count)
+Parameters
+
+setName?: string
+The name of the set to select from. Defaults to 'default' if not provided.
+count: number
+The number of items to select (must be a positive number).
+Returns
+
+any[]
+An array of selected item values.
+Example
+
+
+local selector = lib.selector:new({
+    loot = {
+        { 70, 'common_loot' },
+        { 25, 'rare_loot' },
+        { 5, 'legendary_loot' },
+    },
+})
+local items = selector:getRandomWeightedAmount('loot', 3)
+-- Returns 3 items selected based on their weights
+OxSelector:getSet
+
+Get all items from a specific set.
+
+
+selector:getSet(setName)
+Parameters
+
+setName?: string
+The name of the set to retrieve. Defaults to 'default' if not provided.
+Returns
+
+OxSelectorItem[]
+A deep clone of the set's items.
+Example
+
+
+local selector = lib.selector:new({
+    { 10, 'item_a' },
+    { 20, 'item_b' },
+})
+local items = selector:getSet()
+-- Returns: { { 10, 'item_a' }, { 20, 'item_b' } }
+OxSelector:getAllSets
+
+Get all sets from the selector.
+
+
+selector:getAllSets()
+Returns
+
+table<string, OxSelectorItem[]>
+A deep clone of all sets.
+Example
+
+
+local selector = lib.selector:new({
+    weapons = {
+        { 50, 'WEAPON_PISTOL' },
+    },
+    vehicles = {
+        { 60, 'sultan' },
+    },
+})
+local allSets = selector:getAllSets()
+-- Returns: { weapons = { { 50, 'WEAPON_PISTOL' } }, vehicles = { { 60, 'sultan' } } }
+OxSelector:addSet
+
+Add a new set to the selector.
+
+
+selector:addSet(setName, items)
+Parameters
+
+setName: string
+The name of the new set.
+items: OxSelectorItem[]
+An array of items to add (must contain at least one item).
+Example
+
+
+local selector = lib.selector:new({
+    { 10, 'existing_item' },
+})
+selector:addSet('newSet', {
+    { 50, 'new_item_a' },
+    { 30, 'new_item_b' },
+})
+OxSelector:updateSet
+
+Update an existing set with new items.
+
+
+selector:updateSet(setName, newItems)
+Parameters
+
+setName: string
+The name of the set to update.
+newItems: OxSelectorItem[]
+An array of items to replace the existing set (must contain at least one item).
+Example
+
+
+local selector = lib.selector:new({
+    rewards = {
+        { 100, 'old_reward' },
+    },
+})
+selector:updateSet('rewards', {
+    { 50, 'new_reward_a' },
+    { 50, 'new_reward_b' },
+})
+OxSelector:removeSet
+
+Remove a set from the selector.
+
+
+selector:removeSet(setName)
+Parameters
+
+setName: string
+The name of the set to remove.
+Example
+
+
+local selector = lib.selector:new({
+    temporary = {
+        { 10, 'temp_item' },
+    },
+})
+selector:removeSet('temporary')
+Usage Example
+
+A complete example demonstrating loot table management for a game system.
+
+
+-- Create a loot selector with different rarity tiers
+local lootSelector = lib.selector:new({
+    common = {
+        { 40, { name = 'bread', count = 1 } },
+        { 30, { name = 'water', count = 1 } },
+        { 20, { name = 'bandage', count = 2 } },
+        { 10, { name = 'lockpick', count = 1 } },
+    },
+    rare = {
+        { 50, { name = 'medkit', count = 1 } },
+        { 30, { name = 'armor', count = 1 } },
+        { 15, { name = 'weapon_parts', count = 3 } },
+        { 5, { name = 'keycard', count = 1 } },
+    },
+    legendary = {
+        { 60, { name = 'WEAPON_CARBINERIFLE', ammo = 60 } },
+        { 30, { name = 'WEAPON_PUMPSHOTGUN', ammo = 24 } },
+        { 10, { name = 'WEAPON_SNIPERRIFLE', ammo = 10 } },
+    },
+})
+-- Simulate opening a loot crate
+local function openLootCrate(crateType)
+    local tierRoll = math.random(100)
+    local tier
+    if crateType == 'basic' then
+        tier = tierRoll <= 80 and 'common' or 'rare'
+    elseif crateType == 'military' then
+        if tierRoll <= 40 then
+            tier = 'common'
+        elseif tierRoll <= 85 then
+            tier = 'rare'
+        else
+            tier = 'legendary'
+        end
+    end
+    -- Get 1-3 items from the selected tier
+    local itemCount = math.random(1, 3)
+    local loot = lootSelector:getRandomWeightedAmount(tier, itemCount)
+    return loot
+end
+-- Example usage
+RegisterCommand('openloot', function()
+    local loot = openLootCrate('military')
+    for i = 1, #loot do
+        print(('Received: %s'):format(json.encode(loot[i])))
+    end
+end)
+
+Ox Lib
+Streaming
+Client
+Last updated on 6/19/2026
+
+Check if assets exist, such as models, and loads them into memory.
+Throws errors for invalid assets and returns true if the asset is loaded.
+
+lib.requestAnimDict
+
+Remember to call RemoveAnimDict(dict) at the end of your code!
+Lua
+JS
+
+lib.requestAnimDict(dict, timeout)
+dict: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 10000
+lib.requestAnimSet
+
+Remember to call RemoveAnimSet(set) at the end of you code!
+Lua
+JS
+
+lib.requestAnimSet(set, timeout)
+set: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 10000
+lib.requestAudioBank
+
+Remember to call ReleaseScriptAudioBank(set) at the end of you code!
+
+lib.requestAudioBank(audioBank, timeout)
+audioBank: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 30000
+lib.requestModel
+
+Remember to call SetModelAsNoLongerNeeded(model) at the end of you code!
+Lua
+JS
+
+lib.requestModel(model, timeout)
+model: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 10000
+lib.requestStreamedTextureDict
+
+Remember to call SetStreamedTextureDictAsNoLongerNeeded(dict) at the end of you code!
+
+Lua
+JS
+
+lib.requestStreamedTextureDict(dict, timeout)
+dict: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 10000
+lib.requestNamedPtfxAsset
+
+Remember to call RemoveNamedPtfxAsset(dict) at the end of you code!
+Lua
+JS
+
+lib.requestNamedPtfxAsset(ptFxName, timeout)
+ptFxName: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 10000
+lib.requestScaleformMovie
+
+Remember to call SetScaleformMovieAsNoLongerNeeded(scaleformName) at the end of you code!
+
+Lua
+JS
+
+lib.requestScaleformMovie(scaleformName, timeout)
+scaleformName: string
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 1000
+lib.requestWeaponAsset
+
+Remember to call RemoveWeaponAsset(weaponType) at the end of you code!
+Lua
+JS
+
+lib.requestWeaponAsset(weaponType, timeout, weaponResourceFlags, extraWeaponComponentFlags)
+weaponType: string | number
+timeout?: number
+Number of ticks to wait for the asset to load.
+Default: 10000
+weaponResourceFlags?: WeaponResourceFlags
+Default: 31
+extraWeaponComponentFlags?: ExtraWeaponComponentFlags
+Default: 0
+WeaponResourceFlags
+
+
+1 WRF_REQUEST_BASE_ANIMS
+2 WRF_REQUEST_COVER_ANIMS
+4 WRF_REQUEST_MELEE_ANIMS
+8 WRF_REQUEST_MOTION_ANIMS
+16 WRF_REQUEST_STEALTH_ANIMS
+32 WRF_REQUEST_ALL_MOVEMENT_VARIATION_ANIMS
+31 WRF_REQUEST_ALL_ANIMS
+ExtraWeaponComponentFlags
+
+
+0 WEAPON_COMPONENT_NONE
+1 WEAPON_COMPONENT_FLASH
+2 WEAPON_COMPONENT_SCOPE
+4 WEAPON_COMPONENT_SUPP
+8 WEAPON_COMPONENT_SCLIP2
+16 WEAPON_COMPONENT_GRIP
+
+Ox Lib
+String
+Shared
+Last updated on 6/19/2026
+
+lib.string
+
+Extends the standard Lua string table with extra functions.
+
+
+string = lib.string
+string.random
+
+Outputs a random string based on a given pattern.
+
+
+string.random(pattern, length)
+pattern: string
+1 will output a random number from 0-9.
+A will output a random letter from A-Z.
+a will output a random letter from a-z.
+. will output a random letter or number.
+^ will output the following character literally.
+Any other character will output said character.
+length?: number
+Sets the length of the returned string, either padding it or omitting characters.
+Return:
+
+string: string
+
+Ox Lib
+Table
+Shared
+Last updated on 6/19/2026
+
+Adds additional functions alongside the standard table library.
+
+lib.table.contains
+
+Checks if table contains the given value. Only intended for simple values and unnested tables.
+
+
+lib.table.contains(tbl, value)
+tbl: table
+value: any
+Return:
+
+isContained: boolean
+lib.table.matches
+
+Compares if two values are equal, iterating over tables and matching both keys and values.
+
+
+lib.table.matches(tableOne, tableTwo)
+tableOne: table
+tableTwo: table
+Return:
+
+matches: boolean
+lib.table.deepclone
+
+Recursively clones a table to ensure no table references remain.
+
+
+lib.table.deepclone(tbl)
+tbl: table
+Return:
+
+clonedTable: table
+lib.table.merge
+
+Merges two tables together. Duplicate keys will be added together if they are numbers, otherwise tableTwo's value will be used.
+
+
+lib.table.merge(tableOne, tableTwo)
+tableOne: table
+tableTwo: table
+addDuplicateNumbers: boolean
+Duplicate keys equal to numbers will be added together unless set to false.
+Return:
+
+tableOne: table
+lib.table.freeze
+
+Makes a table read-only, preventing further modification. Unfrozen tables stored within table are still mutable.
+
+
+lib.table.freeze(tbl)
+tbl: table
+Return:
+
+frozenTable: table
+lib.table.isFrozen
+
+Returns true if tbl is set as read-only.
+
+
+lib.table.isFrozen(tbl)
+tbl: table
+Return:
+
+isFrozen: boolean
+
+Ox Lib
+Timer
+Shared
+Last updated on 6/19/2026
+
+Provides a versatile timer system with options for asynchronous operation, pause and resume functionality, and callbacks on timer completion.
+
+Timer
+
+lib.timer
+
+
+lib.timer(time, onEnd, async)
+time: number
+onEnd: function
+async?: boolean
+If true then the timer does not block script execution on the calling thread.
+Returns:
+
+timer: OxTimer
+Example
+
+
+local timer = lib.timer(5000, function()
+   print("timer ended")
+end)
+Methods
+
+pause
+
+Pauses an active timer until timer:play() or timer:forceEnd() is called.
+
+
+timer:pause()
+Example
+
+
+local timer = lib.timer(5000, function()
+    print("timer ended")
+end, true)
+timer:pause()
+play
+
+Resume a timer if it is paused with timer:pause().
+
+
+timer:play()
+Example
+
+
+local timer = lib.timer(5000, function()
+    print("timer ended")
+end, true)
+timer:pause()
+Wait(1000)
+timer:play()
+--timer finishes in 6 seconds rather than 5 because of the pause
+forceEnd
+
+Immediately ends the timer and optionally triggers the onEnd callback.
+
+
+timer:forceEnd(triggerOnEnd)
+triggerOnEnd: boolean
+Example
+
+
+local timer = lib.timer(5000, function()
+    print("timer ended")
+end, true)
+timer:pause()
+Wait(1000)
+timer:forceEnd(false)
+--timer finishes in 1 second rather than 5 because of the forceEnd and the call back never runs
+isPaused
+
+Checks if the timer is paused from calling timer:pause() previously.
+
+
+timer:isPaused()
+Returns:
+
+isPaused: boolean
+Example
+
+
+local timer = lib.timer(5000, function()
+    print("timer ended")
+end, true)
+print(timer:isPaused()) -- false
+timer:pause()
+print(timer:isPaused()) -- true
+getTimeLeft
+
+Returns the remaining time on the timer in the given format rounded to 2 decimal places
+
+
+timer:getTimeLeft(format)
+-- format: 'ms' = miliseconds, 's' = seconds, 'm' = minutes, 'h' = hours, nil = all returned in a table
+format?: 'ms' or 's' or 'm' or 'h'
+Returns:
+
+time: number | {ms: number, s: number, m: number, h: number}
+Example
+
+
+local timer = lib.timer(5000, function()
+    print("timer ended")
+end, true)
+print(timer:getTimeLeft('ms')) -- 5000 miliseconds
+print(timer:getTimeLeft('s'))  -- 5.00 seconds
+print(timer:getTimeLeft('m'))  -- 0.08 minutes
+print(timer:getTimeLeft('h'))  -- 0.00 hours
+print(timer:getTimeLeft())     -- {ms = 5000, s = 5.00, m = 0.08, h = 0.00 }
+restart
+
+Resets and starts the timer.
+
+
+timer:restart()
+Example
+
+
+-- this will create a timer that just keeps restarting itself
+local timer
+timer = lib.timer(5000, function()
+    print("timer ended")
+    timer:restart()
+end, true)
+
+
+Ox Lib
+VehicleProperties
+Client
+Last updated on 6/19/2026
+
+Mostly follows the format used by ESX and QBCore, with extra data such as damaged/missing props.
+https://github.com/overextended/ox_lib/blob/master/resource/vehicleProperties/client.lua#L3
+
+lib.getVehicleProperties
+
+
+lib.getVehicleProperties(vehicle);
+vehicle: number
+vehicle handle of the vehicle to get the properties for
+Lua
+JS
+
+lib.getVehicleProperties(GetVehiclePedIsUsing(PlayerPedId()))
+lib.setVehicleProperties
+
+Sets properties on a vehicle (i.e. mods, plate text, etc.) and returns true if the client owns the entity.
+
+
+lib.setVehicleProperties(vehicle, props)
+vehicle: entity
+props: table
+Lua
+JS
+
+RegisterNetEvent('ox_lib:setVehicleProperties', function(netid, data)
+    lib.setVehicleProperties(NetToVeh(netid), data)
+end)
+Returns:
+
+isEntityOwner: boolean
+Recommended Usage
+
+The server should tell the owner of the entity to set properties, using the following trigger.
+
+
+TriggerClientEvent('ox_lib:setVehicleProperties', entityOwner, vehNetId, data)
+Vehicle Properties
+
+model?: number
+plate?: string
+plateIndex?: number
+bodyHealth?: number
+engineHealth?: number
+tankHealth?: number
+fuelLevel?: number
+oilLevel?: number
+dirtLevel?: number
+color1?: number or number[]
+color2?: number or number[]
+pearlescentColor?: number
+interiorColor?: number
+dashboardColor?: number
+wheelColor?: number
+wheelWidth?: number
+wheelSize?: number
+wheels?: number
+windowTint?: number
+xenonColor?: number
+neonEnabled?: boolean[]
+neonColor?: number or number[]
+extras?: table<number | string, 0 | 1>
+tyreSmokeColor?: number or number[]
+modSpoilers?: number
+modFrontBumper?: number
+modRearBumper?: number
+modSideSkirt?: number
+modExhaust?: number
+modFrame?: number
+modGrille?: number
+modHood?: number
+modFender?: number
+modRightFender?: number
+modRoof?: number
+modEngine?: number
+modBrakes?: number
+modTransmission?: number
+modHorns?: number
+modSuspension?: number
+modArmor?: number
+modNitrous?: number
+modTurbo?: number
+modSubwoofer?: boolean
+modSmokeEnabled?: boolean
+modHydraulics?: boolean
+modXenon?: boolean
+modFrontWheels?: number
+modBackWheels?: number
+modCustomTiresF?: boolean
+modCustomTiresR?: boolean
+modPlateHolder?: number
+modVanityPlate?: number
+modTrimA?: number
+modOrnaments?: number
+modDashboard?: number
+modDial?: number
+modDoorSpeaker?: number
+modSeats?: number
+modSteeringWheel?: number
+modShifterLeavers?: number
+modAPlate?: number
+modSpeakers?: number
+modTrunk?: number
+modHydrolic?: number
+modEngineBlock?: number
+modAirFilter?: number
+modStruts?: number
+modArchCover?: number
+modAerials?: number
+modTrimB?: number
+modTank?: number
+modWindows?: number
+modDoorR?: number
+modLivery?: number
+modRoofLivery?: number
+modLightbar?: number
+windows?: number[]
+doors?: number[]
+tyres?: table<number | string, 1 | 2>
+bulletProofTyres?: boolean
+
+Ox Lib
+Version
+Server
+Last updated on 6/19/2026
+
+lib.versionCheck
+
+Compares the resource version to the latest published release on GitHub.
+Utilises GitHub's release API
+
+
+lib.versionCheck(repository)
+repository: string
+Lua
+JS
+
+lib.versionCheck('overextended/ox_lib')
+
+Ox Lib
+Version
+Shared
+Last updated on 6/19/2026
+
+lib.checkDependency
+
+Check if a resource is using a specified version or higher, allowing for compatibility checks or throwing errors.
+
+
+lib.checkDependency(resource, version)
+resource: string
+version: string
+Lua
+JS
+
+if not lib.checkDependency('ox_lib', '1.5.0') then error() end
+
+Ox Lib
+WaitFor
+Shared
+Last updated on 6/19/2026
+
+lib.waitFor
+
+Calls a function repeatedly until it receives a non-nil value, or it times out.
+The function result is then returned.
+
+
+lib.waitFor(cb, errMessage, timeout)
+cb: function
+A function to call each frame.
+errMessage?: string
+The error message to display if the function times out.
+timeout?: number | false
+The duration to run the function for, defaulting to 1000ms, unless set to false.
+
+local value --[['abc']] = lib.waitFor(function()
+    if math.random(0, 1) == 1 then return 'abc' end
+end)
+
+Ox Lib
+Zones
+Shared
+Last updated on 6/21/2026
+
+A highly performant spatial check system for the game world. Zones define a 3D area (sphere, box, or polygon) and evaluate whether a position is inside or outside that region - similar to a colshape.
+
+Internally, Zones utilise a spatial grid to efficiently narrow down relevant zones before performing precise position tests.
+
+For Lua, this replaces PolyZone and leverages the GLM library for high performance and memory efficiency.
+
+Zones are also available in JS, utilising our utility library for geometry, grid, and spatial operations.
+
+Server-side zones do not support player trigger events. The onEnter, onExit, and inside handlers are unavailable.
+
+Lua and JavaScript zones are not API compatible. The TypeScript definitions and TSDoc comments in the npm package serve as the authoritative reference for the JavaScript API.
+
+Polygon/Prism Zone
+
+Creates a polygon from the given vertices, which is then placed in the world and extruded to the given height to form a 3D shape.
+
+Lua
+TypeScript
+
+lib.zones.poly(data)
+data: table
+points: vector3[]
+An array of 3d points defining the polygon's shape.
+thickness?: number
+The height of the polygon, defaulting to 4.
+onEnter?: function(self: table)
+onExit?: function(self: table)
+inside?: function(self: table)
+debug?: boolean
+Box Zone
+
+Lua
+TypeScript
+
+lib.zones.box(data)
+data: table
+coords: vector3
+size?: vector3
+Default: vec3(2, 2, 2)
+rotation?: number
+Angle in degrees, defaulting to 0.
+onEnter?: function(self: table)
+onExit?: function(self: table)
+inside?: function(self: table)
+debug?: boolean
+Sphere Zone
+
+Lua
+TypeScript
+
+lib.zones.sphere(data)
+data: table
+coords: vector3
+radius?: number
+Default: 2
+onEnter?: function(self: table)
+onExit?: function(self: table)
+inside?: function(self: table)
+debug?: boolean
+Methods
+
+onEnter
+
+A function called when the player enters the zone. It can be attached to the zone after instantiation, or in the data table if using Lua.
+
+Lua
+TypeScript
+
+local function onEnter(self)
+    print('entered zone', self.id)
+end
+zone.onEnter = onEnter
+onExit
+
+A function called when the player exits the zone. It can be attached to the zone after instantiation, or in the data table if using Lua.
+
+Lua
+TypeScript
+
+local function onExit(self)
+    print('exited zone', self.id)
+end
+zone.onExit = onExit
+inside
+
+A function called when the player exits the zone. It can be attached to the zone after instantiation, or in the data table if using Lua.
+
+Lua
+TypeScript
+
+local function inside(self)
+    print('you are inside zone', self.id)
+end
+zone.inside = inside
+remove
+
+Zones can be deleted by using the remove method.
+
+Lua
+TypeScript
+
+zone:remove()
+contains
+
+Evaluates whether a point is within the zone.
+
+Lua
+TypeScript
+
+zone:contains(vec3(1, 1, 1))
+Returns: boolean
+
+setDebug
+
+Enables or disables debug mode for a zone, optionally with custom colors.
+
+For JavaScript, set zone.shouldDraw or manually call zone.draw(...args).
+
+
+local zone = lib.zones.box({...})
+-- Enable debug with default colors
+zone:setDebug(true)
+-- Enable debug with custom colors
+zone:setDebug(true, vec4(255, 0, 0, 100))
+-- Disable debug
+zone:setDebug(false)
+Utility Functions
+
+getAllZones
+
+Returns all registered zones.
+
+Lua
+TypeScript
+
+lib.zones.getAllZones()
+Returns: CZone[]
+
+getCurrentZones
+
+Returns all zones the player is currently inside.
+
+Lua
+TypeScript
+
+lib.zones.getCurrentZones()
+Returns: CZone[]
+
+getNearbyZones
+
+Returns all zones near the player.
+
+Lua
+TypeScript
+
+lib.zones.getNearbyZones()
+Returns: CZone[]
+
+Examples
+
+Lua
+TypeScript
+
+function onEnter(self)
+    print('entered zone', self.id)
+end
+function onExit(self)
+    print('exited zone', self.id)
+end
+function inside(self)
+    print('you are inside zone ' .. self.id)
+end
+local poly = lib.zones.poly({
+    points = {
+        vec(413.8, -1026.1, 29),
+        vec(411.6, -1023.1, 29),
+        vec(412.2, -1018.0, 29),
+        vec(417.2, -1016.3, 29),
+        vec(422.3, -1020.0, 29),
+        vec(426.8, -1015.9, 29),
+        vec(431.8, -1013.0, 29),
+        vec(437.3, -1018.4, 29),
+        vec(432.4, -1027.2, 29),
+        vec(424.7, -1023.5, 29),
+        vec(420.0, -1030.2, 29),
+        vec(409.8, -1028.4, 29),
+    },
+    thickness = 2,
+    debug = true,
+    inside = inside,
+    onEnter = onEnter,
+    onExit = onExit
+})
+local sphere = lib.zones.sphere({
+    coords = vec3(442.5363, -1017.666, 28.65637),
+    radius = 1,
+    debug = true,
+    inside = inside,
+    onEnter = onEnter,
+    onExit = onExit
+})
+local box = lib.zones.box({
+    coords = vec3(442.5363, -1017.666, 28.65637),
+    size = vec3(1, 1, 1),
+    rotation = 45,
+    debug = true,
+    inside = inside,
+    onEnter = onEnter,
+    onExit = onExit
+})
+Zone creation script
+
+You can use our builtin zone-creator with /zone - with poly, box or sphere as an argument.
+Available controls will be displayed on the right side.
+
+Zones will be saved to ox_lib/created_zones.lua with your chosen format.
+
+function
+array
+ox_target
+
+local poly = lib.zones.poly({
+    name = poly,
+    points = {
+        vec(447.9, -998.8, 25.8),
+        vec(450.3, -998.2, 25.8),
+        vec(449.9, -995.5, 25.8),
+        vec(447.2, -995.6, 25.8),
+        vec(446.3, -997.9, 25.8),
+    },
+    thickness = 2,
+})
