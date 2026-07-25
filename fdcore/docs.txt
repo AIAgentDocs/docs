@@ -1,3 +1,4 @@
+RESOURCE NAME IS ALWAYS: fd_core
 function ban(source, reason)
     exports["ElectronAC"]:banPlayer(source, reason, "Event", false)
 end
