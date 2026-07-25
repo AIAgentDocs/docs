@@ -1,1 +1,1850 @@
-dwedwdwe
+Phone
+Exports and events
+Client exports
+Copy page
+
+Client Exports
+Misc
+GetConfig
+
+---@return table
+local config = exports["lb-phone"]:GetConfig()
+GetCellTowers
+
+---@return vector3[]
+local cellTowers = exports["lb-phone"]:GetCellTowers()
+FormatNumber
+
+---@param number string # The number to format
+---@return string # The formatted number
+local formattedNumber = exports["lb-phone"]:FormatNumber(number)
+SaveToGallery
+Saves an image or video to the gallery.
+
+
+---@param link string # The link to the image/video
+exports["lb-phone"]:SaveToGallery(link)
+HasPhoneItem
+Check if the player has a phone item in their inventory.
+
+
+---@param number? string
+---@return boolean
+local hasPhone = exports["lb-phone"]:HasPhoneItem(number)
+AddCheck
+
+---@alias CheckEvent "openPhone" | "playNativePhoneSound"
+ 
+---@param event CheckEvent
+---@param handler fun(...: any): boolean
+---@return number id
+local id = exports["lb-phone"]:AddCheck(event, handler)
+RemoveCheck
+
+---@param id number
+---@return boolean success
+local success = exports["lb-phone"]:RemoveCheck(id)
+Handle phone
+GetEquippedPhoneNumber
+
+---@return string?
+local phoneNumber = exports["lb-phone"]:GetEquippedPhoneNumber()
+ToggleOpen
+
+---@param open? boolean # If true, the phone is opened, if false, the phone is closed. If nil, the phone it toggles.
+---@param noFocus? boolean # If true, the cursor is hidden when opening the phone.
+exports["lb-phone"]:ToggleOpen(open, noFocus)
+IsOpen
+
+---@return boolean
+local isOpen = exports["lb-phone"]:IsOpen()
+IsPhoneOnScreen
+
+---@return boolean
+local isPhoneOnScreen = exports["lb-phone"]:IsPhoneOnScreen()
+IsDisabled
+
+---@return boolean
+local isDisabled = exports["lb-phone"]:IsDisabled()
+ToggleDisabled
+
+---@param disabled boolean
+exports["lb-phone"]:ToggleDisabled(disabled)
+ToggleHomeIndicator
+
+---@param show boolean
+exports["lb-phone"]:ToggleHomeIndicator(show)
+ToggleLandscape
+
+---@param landscape boolean
+exports["lb-phone"]:ToggleLandscape(landscape)
+SendNotification
+
+---@class NotificationData
+---@field app? string # Identifier of the app that sent the notification, optional
+---@field title string # Title of the notification
+---@field content? string # Content of the notification, optional
+---@field thumbnail? string # Thumbnail URL, optional
+---@field avatar? string # Avatar URL, optional
+---@field showAvatar? boolean # Whether to show an avatar placeholder if no avatar was sent, optional
+ 
+---@param data NotificationData
+exports["lb-phone"]:SendNotification({
+    app = "Settings",
+    title = "Test",
+    content = "This is a test notification",
+})
+DeleteNotification
+Deletes a notification by ID. Client-only notification IDs are removed locally, while numeric server notification IDs are also deleted from the database.
+
+
+---@param notificationId number | string
+---@return boolean success
+local success = exports["lb-phone"]:DeleteNotification(notificationId)
+ToggleFlashlight
+
+---@param flashlight boolean
+exports["lb-phone"]:ToggleFlashlight(flashlight)
+GetFlashlight
+
+---@return boolean
+local flashlightEnabled = exports["lb-phone"]:GetFlashlight()
+SetServiceBars
+Set a static number of service bars (0-4). Set to false or nil to reset to default behavior.
+
+
+---@param bars? number | false
+exports["lb-phone"]:SetServiceBars(bars)
+ReloadPhone
+Refresh the data of the player’s phone. Useful if you have changed phone number or something in the database.
+
+
+exports["lb-phone"]:ReloadPhone()
+SetPhoneVariation
+
+---@param variation number # The variation of the phone, has to be configured in `Config.Item.Names`
+exports["lb-phone"]:SetPhoneVariation(variation)
+SetAnimations
+Overrides the animations used while the phone is open, during calls, and in the camera. Animation presets are configured in config/animations.lua.
+
+
+---@class PhoneAnimationData
+---@field dict string
+---@field anim string
+---@field flag number
+---@field blendInSpeed? number
+---@field blendOutSpeed? number
+ 
+---@class PhoneAnimation
+---@field open PhoneAnimationData
+---@field base PhoneAnimationData
+---@field close PhoneAnimationData
+ 
+---@class PhoneAnimations
+---@field onFoot PhoneAnimation
+---@field inVehicle PhoneAnimation
+ 
+---@class PhoneAnimationConfig
+---@field default PhoneAnimations
+---@field call PhoneAnimations
+---@field camera PhoneAnimations
+ 
+---@type PhoneAnimationConfig
+local animations = PhoneAnimations["two handed"]
+ 
+exports["lb-phone"]:SetAnimations(animations)
+ResetAnimations
+Resets the active animations to the preset selected by Config.AnimationStyle, or to LB Phone’s defaults if that preset is unavailable.
+
+
+exports["lb-phone"]:ResetAnimations()
+Camera
+EnableWalkableCam
+
+---@param selfieMode? boolean
+exports["lb-phone"]:EnableWalkableCam(selfieMode)
+DisableWalkableCam
+
+exports["lb-phone"]:DisableWalkableCam()
+IsWalkingCamEnabled
+
+---@return boolean
+local enabled = exports["lb-phone"]:IsWalkingCamEnabled()
+ToggleSelfieCam
+
+---@param selfieMode boolean
+exports["lb-phone"]:ToggleSelfieCam(selfieMode)
+ToggleCameraFrozen
+
+exports["lb-phone"]:ToggleCameraFrozen()
+IsSelfieCam
+
+---@return boolean
+local selfieCam = exports["lb-phone"]:IsSelfieCam()
+IsCameraOpen
+Checks whether LB Phone’s camera is currently open.
+
+
+---@return boolean
+local cameraOpen = exports["lb-phone"]:IsCameraOpen()
+Settings
+GetSettings
+
+---@return table
+local settings = exports["lb-phone"]:GetSettings()
+GetAirplaneMode
+
+---@return boolean
+local airplaneMode = exports["lb-phone"]:GetAirplaneMode()
+GetStreamerMode
+
+---@return boolean
+local streamerMode = exports["lb-phone"]:GetStreamerMode()
+Trays
+Trays are owned by the resource that created them. A resource can only update or remove its own trays, and its trays are removed automatically when the resource stops.
+
+ShowMusicTray
+Shows media playback controls in the phone’s music tray.
+
+
+---@class MusicTrayHandlers
+---@field action? fun(action: string, data?: any)
+---@field play? fun()
+---@field pause? fun()
+---@field next? fun()
+---@field previous? fun()
+---@field seek? fun(position: number)
+ 
+---@class MusicTrayPermissions
+---@field seek? boolean
+---@field next? boolean
+---@field previous? boolean
+ 
+---@class MusicTrayOptions
+---@field id? string
+---@field title string
+---@field artist? string
+---@field album? string
+---@field cover? string
+---@field duration? number
+---@field position? number
+---@field playing? boolean
+---@field color? string
+---@field permissions? MusicTrayPermissions
+---@field handlers? MusicTrayHandlers
+ 
+---@type MusicTrayOptions
+local options = {
+    title = "Track name",
+    artist = "Artist",
+    duration = 180,
+    position = 0,
+    playing = true,
+    permissions = {
+        seek = true,
+        next = true,
+        previous = true
+    },
+    handlers = {
+        pause = function()
+            -- Pause playback
+        end,
+        seek = function(position)
+            -- Seek to position in seconds
+        end
+    }
+}
+ 
+---@type string | false
+local id, errorReason = exports["lb-phone"]:ShowMusicTray(options)
+UpdateMusicTray
+Updates a music tray with a patch table, or with a single key and value.
+
+
+---@param id string
+---@param patch table
+---@return boolean success
+---@return string? errorReason
+local success, errorReason = exports["lb-phone"]:UpdateMusicTray(id, {
+    position = 30,
+    playing = false
+})
+ 
+-- A single property can also be updated
+exports["lb-phone"]:UpdateMusicTray(id, "playing", true)
+The updateable properties are title, artist, album, cover, duration, position, playing, color, permissions, and handlers.
+
+RemoveMusicTray
+Removes one music tray. Omit id to remove every music tray created by the calling resource.
+
+
+---@param id? string
+---@return boolean success
+---@return string? errorReason
+local success, errorReason = exports["lb-phone"]:RemoveMusicTray(id)
+ShowLiveTray
+Shows a live activity in the phone’s live tray.
+
+
+---@class LiveTrayButton
+---@field id string
+---@field label? string
+---@field icon? string
+---@field color? "red" | "green" | "blue" | "black" | string
+---@field click? fun()
+ 
+---@class LiveTrayEmbed
+---@field url? string # Provide either url or html
+---@field html? string # Provide either html or url
+---@field size 3 | 4 | 5
+ 
+---@class LiveTrayHandlers
+---@field action? fun(action: string, data?: any)
+---@field tap? fun()
+---@field remove? fun()
+---@field autoHide? fun()
+---@field update? fun(patch: table)
+ 
+---@class LiveTrayOptions
+---@field icon? string
+---@field title string
+---@field text? string
+---@field color? string
+---@field progress? number
+---@field badge? string
+---@field expandable? boolean
+---@field buttons? LiveTrayButton[]
+---@field duration? number
+---@field removable? boolean
+---@field embed? LiveTrayEmbed
+---@field handlers? LiveTrayHandlers
+ 
+---@type LiveTrayOptions
+local options = {
+    icon = "https://example.com/icon.png",
+    title = "Delivery in progress",
+    text = "2 minutes away",
+    progress = 0.75,
+    removable = true,
+    buttons = {
+        {
+            id = "cancel",
+            label = "Cancel",
+            color = "red",
+            click = function()
+                -- Cancel the delivery
+            end
+        }
+    }
+}
+ 
+---@return string id
+local id = exports["lb-phone"]:ShowLiveTray(options)
+An embed must contain either url or html, but not both. Its size must be 3, 4, or 5.
+
+UpdateLiveTray
+Updates a live tray with a patch table, or with a single key and value.
+
+
+---@param id string
+---@param patch table
+---@return boolean success
+---@return string? errorReason
+local success, errorReason = exports["lb-phone"]:UpdateLiveTray(id, {
+    text = "1 minute away",
+    progress = 0.9
+})
+ 
+-- A single property can also be updated
+exports["lb-phone"]:UpdateLiveTray(id, "badge", "Almost there")
+The updateable properties are icon, title, text, color, progress, badge, expandable, buttons, duration, removable, embed, and handlers.
+
+RemoveLiveTray
+Removes one live tray. Omit id to remove every live tray created by the calling resource.
+
+
+---@param id? string
+---@return boolean success
+---@return string? errorReason
+local success, errorReason = exports["lb-phone"]:RemoveLiveTray(id)
+Apps
+IsLive
+Used to check if the player is live on InstaPic.
+
+
+---@return boolean
+local isLive = exports["lb-phone"]:IsLive()
+PostBirdy
+
+---@class BirdyPostData
+---@field content string # The content of the post
+---@field attachments? string[] # URLs of the attachments
+---@field replyTo? string # The ID of the post to reply to
+---@field hashtags? string[] # Hashtags used in the post
+ 
+---@param data BirdyPostData
+---@return boolean # Whether the post was successful
+exports["lb-phone"]:PostBirdy(data)
+AddContact
+
+---@class ContactData
+---@field number string
+---@field firstname string
+---@field lastname? string
+---@field avatar? string
+---@field email? string
+---@field address? string
+ 
+---@param data ContactData
+---@return boolean success
+exports["lb-phone"]:AddContact({
+    number = "01234567890",
+    firstname = "John",
+    lastname = "Doe",
+    avatar = "https://example.com/avatar",
+    email =  "john@lbscripts.com",
+    address = "Eclipse Towers, Penthouse Suite 1",
+})
+UpdateContact
+Updates a contact. Set oldNumber when changing the contact’s phone number.
+
+
+---@class UpdateContactData : ContactData
+---@field oldNumber? string
+ 
+---@param data UpdateContactData
+---@return boolean success
+local success = exports["lb-phone"]:UpdateContact({
+    oldNumber = "01234567890",
+    number = "09876543210",
+    firstname = "John",
+    lastname = "Doe"
+})
+RemoveContact
+
+---@param phoneNumber string
+---@return boolean success
+local success = exports["lb-phone"]:RemoveContact(phoneNumber)
+OpenApp
+
+---@param app string # The app (identifier) to open
+---@param data? table # Data to pass to the app
+exports["lb-phone"]:OpenApp(app, data)
+CloseApp
+
+---@param options? { app?: string, closeCompletely?: boolean }
+exports["lb-phone"]:CloseApp(options)
+SetAppHidden
+Hides an app from the app browser
+
+
+---@param app string
+---@param hidden boolean
+exports["lb-phone"]:SetAppHidden(app, hidden)
+SetAppInstalled
+
+---@param app string
+---@param installed boolean
+exports["lb-phone"]:SetAppInstalled(app, installed)
+Custom apps
+We strongly recommend using our template . See custom apps for more info.
+
+AddCustomApp
+Add a custom app. Make sure to wait for lb-phone to be started, and then wait a bit more (e.g. 500ms) to make sure the export exists.
+
+
+---@class CustomApp
+---@field identifier string # A unique identifier of the app
+---@field ui string # The path to the HTML file
+---@field name string
+---@field description string
+---@field images? string[] # An array of images for the app on the app store
+---@field developer? string # The developer of the app
+---@field defaultApp? boolean # If set to true, the app will be added automatically
+---@field size? number # Size in kB
+---@field icon? string # A url to the icon of the app
+---@field price? number # Require players to purchase the app with in-game money
+---@field landscape? boolean
+---@field game? boolean
+---@field disableInAppNotifications? boolean
+---@field onDelete? fun() # Called when the app is uninstalled
+---@field onInstall? fun() # Called when the app is installed
+---@field onUse? fun() # Called when the app is opened
+---@field fixBlur? boolean # If set to true, the app will not be blurry. This requires you to use the em/rem units in your CSS
+---@field onClose? fun() # Called when the app is closed
+---@field onOpen? fun() # Called when the app is opened
+ 
+---@param appData CustomApp
+---@return boolean success
+---@return string? errorMessage
+local success, errorMessage = exports["lb-phone"]:AddCustomApp({
+    identifier = "custom-app",
+    name = "Custom App",
+    description = "This is a custom app",
+    ui = "ui/index.html"
+})
+RemoveCustomApp
+
+---@param identifier string
+---@return boolean success
+---@return string? errorMessage
+local success, errorMessage = exports["lb-phone"]:RemoveCustomApp(identifier)
+SendCustomAppMessage
+Used to send a UI message to a custom app (replacement for SendNUIMessage).
+
+
+---@param identifier string
+---@param data any
+---@return boolean success
+---@return string? errorMessage
+exports["lb-phone"]:SendCustomAppMessage(identifier, data)
+Components
+SetPopUp
+Used to show a popup, see popups for more info.
+
+SetContextMenu
+Used to show a context menu, see context menus for more info.
+
+ShowComponent
+Used to show a component. Valid components are gallery, gif, emoji, camera, and colorpicker.
+
+
+---@param options { component: string, ... } # The component to show and its options
+---@param cb function # Callback function with the result
+exports["lb-phone"]:ShowComponent({
+    component = "gallery", # component to show
+    # other options
+}, function(...)
+    print("Result:", ...)
+end)
+SetCameraComponent
+Opens the camera component.
+
+
+---@class CameraComponentData
+---@field default { type: "Photo" | "Video" | "Landscape", flash: boolean, camera: "rear" | "front" }
+---@field permissions { toggleFlash: boolean, flipCamera: boolean, takePhoto: boolean, takeVideo: boolean, takeLandscapePhoto: boolean }
+---@field saveToGallery boolean
+---@field cb fun(src: string)
+ 
+---@param data CameraComponentData
+---@return string
+local url = exports["lb-phone"]:SetCameraComponent(data)
+SetContactModal
+Shows the contact modal. See setContactSelector for more information.
+
+
+---@param phoneNumber string
+exports["lb-phone"]:SetContactModal(phoneNumber)
+Battery
+IsPhoneDead
+
+---@return boolean # If the phone has 0% battery
+local dead = exports["lb-phone"]:IsPhoneDead()
+GetBattery
+
+---@return number # The battery percentage, 0-100
+local battery = exports["lb-phone"]:GetBattery()
+SetBattery
+
+---@param battery number # The battery percentage, 0-100
+exports["lb-phone"]:SetBattery(battery)
+ToggleCharging
+
+---@param charging boolean
+exports["lb-phone"]:ToggleCharging(charging)
+IsCharging
+
+---@return boolean
+local charging = exports["lb-phone"]:IsCharging()
+Services/companies
+SendCompanyMessage
+
+---@param company string # The company to send the message to
+---@param message string
+---@param anonymous? boolean # Whether the message should be sent anonymously
+exports["lb-phone"]:SendCompanyMessage(company, message, anonymous)
+SendCompanyCoords
+
+---@param company string # The company to send the message to
+---@param coords? vector3 # The coordinates to send, if not provided it will send the player's current location
+---@param anonymous? boolean # Whether the message should be sent anonymously
+exports["lb-phone"]:SendCompanyCoords(company, coords, anonymous)
+GetCompanyCallsStatus
+
+---@return boolean
+local callsEnabled = exports["lb-phone"]:GetCompanyCallsStatus()
+ToggleCompanyCalls
+
+---@param enabled boolean
+---@return boolean
+exports["lb-phone"]:ToggleCompanyCalls(enabled)
+Crypto
+Types
+
+---@alias CryptoCoinPermissions { buy?: boolean, sell?: boolean, transfer?: boolean }
+ 
+---@class CryptoCoin
+---@field id string
+---@field name string
+---@field symbol string
+---@field image string
+---@field current_price number
+---@field prices number[]
+---@field change_24h number
+---@field permissions? CryptoCoinPermissions
+ 
+---@class OwnedCryptoCoin : CryptoCoin
+---@field owned? number
+---@field invested? number
+GetCoinValue
+
+---@param coin string
+---@return number?
+local value = exports["lb-phone"]:GetCoinValue(coin)
+GetCryptoWallet
+
+---@return OwnedCryptoCoin[]
+local wallet = exports["lb-phone"]:GetCryptoWallet()
+GetOwnedCoin
+
+---@param coin string
+---@return OwnedCryptoCoin?
+local coinData = exports["lb-phone"]:GetOwnedCoin(coin)
+Calls
+CreateCall
+Calls a number/company, and shows it on the phone UI.
+
+
+---@class CallOptions
+---@field number? string
+---@field company? string
+---@field videoCall? boolean
+---@field hideNumber? boolean
+ 
+---@param options CallOptions
+exports["lb-phone"]:CreateCall(options)
+IsInCall
+
+---@return boolean
+local inCall = exports["lb-phone"]:IsInCall()
+CreateCustomNumber
+Create a number that players can call.
+
+
+---@class IncomingCall
+---@field id string
+---@field accept fun()
+---@field deny fun() # Declines/ends the call without triggering onEnd
+---@field setName fun(name: string)
+---@field hasEnded fun(): boolean
+ 
+---@class CustomNumberData
+---@field onCall fun(incomingCall: IncomingCall)
+---@field onEnd? fun()
+---@field onAction? fun(action: "mute" | "unmute" | "enable_speaker" | "disable_speaker")
+---@field onKeypad? fun(key: string)
+ 
+---@param number string
+---@param data CustomNumberData
+---@return boolean success
+---@return string? reason
+local success, reason = exports["lb-phone"]:CreateCustomNumber(number, data)
+RemoveCustomNumber
+Remove a custom number. You have to remove it from the same resource that created it.
+
+
+---@param number string
+---@return boolean success
+---@return string? reason
+local success, reason = exports["lb-phone"]:RemoveCustomNumber(number)
+CreateDynamicCustomNumber
+Create a dynamic custom number, where you don’t know the number when creating it.
+
+
+---@param validator fun(phoneNumber: string): boolean
+---@param data CustomNumberData
+---@return number
+local id = exports["lb-phone"]:CreateDynamicCustomNumber(validator, data)
+RemoveDynamicCustomNumber
+Remove a dynamic custom number. You have to remove it from the same resource that created it.
+
+
+---@param id number
+---@return boolean success
+local success = exports["lb-phone"]:RemoveDynamicCustomNumber(id)
+EndCustomCall
+End the current custom call. Returns false if there is no call.
+
+
+---@return boolean
+local success = exports["lb-phone"]:EndCustomCall()
+Callbacks
+RegisterClientCallback
+Registers a client callback that can be called from the server.
+
+
+---@param event string
+---@param handler fun(...) : ...
+exports["lb-phone"]:RegisterClientCallback(event, handler)
+AwaitCallback
+
+---@param event string
+---@param ... any
+local data = exports["lb-phone"]:AwaitCallback(event, ...)
+TriggerCallback
+
+---@param event string
+---@param cb fun(...): any
+---@param ... any
+local data = exports["lb-phone"]:TriggerCallback(event, cb, ...)
+
+Phone
+Exports and events
+Client events
+Copy page
+
+Client Events
+Misc
+lb-phone:numberChanged
+Triggered when the equipped phone number is changed
+
+
+---@param newNumber? string
+RegisterNetEvent("lb-phone:numberChanged", function(newNumber)
+    print("Phone number changed to:", newNumber)
+end)
+lb-phone:phoneToggled
+Triggered when the phone is toggled (opened/closed)
+
+
+---@param open boolean
+RegisterNetEvent("lb-phone:phoneToggled", function(open)
+    print("Phone is now " .. (open and "open" or "closed"))
+end)
+lb-phone:setOnScreen
+
+---@param onScreen boolean
+RegisterNetEvent("lb-phone:setOnScreen", function(onScreen)
+    print("Phone on screen:", onScreen)
+end)
+Camera
+lb-phone:toggleHud
+Triggered when the in-game HUD should be shown/hidden, so that it does not show up in photos/videos
+
+
+---@param hudDisabled boolean
+RegisterNetEvent("lb-phone:toggleHud", function(hudDisabled)
+    print("Hud disabled:", show)
+end)
+Battery
+lb-phone:phoneDied
+Triggered when the phone runs out of battery
+
+
+RegisterNetEvent("lb-phone:phoneDied", function()
+    print("Phone died")
+end)
+Settings
+lb-phone:settingsUpdated
+Triggered when the phone settings are updated
+
+
+RegisterNetEvent("lb-phone:settingsUpdated", function(newSettings)
+    print(json.encode(newSettings, { indent = true }))
+end)
+Social media
+lb-phone:birdy:newPost
+
+---@param post { id: string, username: string, content: string, attachments?: string, reply_to?: string, timestamp: number, replyToAuthor: string, display_name: string, profile_image?: string, verified?: boolean }
+RegisterNetEvent("lb-phone:birdy:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:trendy:newPost
+
+---@param post { id: string, username: string, caption?: string, videoUrl: string }
+RegisterNetEvent("lb-phone:trendy:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:instapic:newPost
+
+---@param post { id: string, username: string, media: string[], caption: string, location?: string }
+RegisterNetEvent("lb-phone:instapic:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:pages:newPost
+
+---@param post { id: string, number: string, title: string, description: string, attachment?: string, price?: number }
+RegisterNetEvent("lb-phone:pages:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:marketplace:newPost
+
+---@param post { id: string, number: string, title: string, description: string, attachments: string[], price: number }
+RegisterNetEvent("lb-phone:marketplace:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+
+Phone
+Exports and events
+Server exports
+Copy page
+
+Server Exports
+Misc
+GetConfig
+
+---@return table
+local config = exports["lb-phone"]:GetConfig()
+GetCellTowers
+
+---@return vector3[]
+local cellTowers = exports["lb-phone"]:GetCellTowers()
+FormatNumber
+
+---@param phoneNumber string
+---@return string
+local formattedNumber = exports["lb-phone"]:FormatNumber(phoneNumber)
+AirShare
+
+---@class ImageShareData
+---@field isVideo boolean
+---@field src string # link to the image/video
+---@field timestamp? number # timestamp in ms, defaults to current time
+ 
+---@class ContactShareData
+---@field number string
+---@field firstname string
+---@field lastname? string
+---@field email? string
+---@field address? string
+---@field avatar? string
+ 
+---@class LocationShareData
+---@field name string
+---@field location vector2 # [y, x]
+ 
+---@class NoteShareData
+---@field title string
+---@field content string
+ 
+---@class VoicememoShareData
+---@field title string
+---@field src string # link to the audio file
+---@field duration string # audio file duration in seconds
+ 
+---@param sender number
+---@param target number
+---@param shareType "image" | "contact" | "location" | "note" | "voicememo"
+---@param shareData ImageShareData | ContactShareData | LocationShareData | NoteShareData | VoicememoShareData
+exports["lb-phone"]:AirShare(sender, target, shareType, shareData)
+ContainsBlacklistedWord
+Checks if a string contains a blacklisted word defined in the config.
+
+
+---@param source number
+---@param text string
+---@return boolean
+local containsBlacklistedWord = exports["lb-phone"]:ContainsBlacklistedWord(source, text)
+AddCheck
+
+---@alias CheckEvent "createDarkChatChannel" | "joinDarkChatChannel" | "sendDarkchatMessage" | "startInstaPicLive" | "joinInstaPicLive" | "postInstaPicStory" | "buyCrypto" | "sellCrypto" | "transferCrypto" | "postInstaPic" | "postBirdy" | "postTrendy"
+ 
+---@param event CheckEvent
+---@param handler fun(source: number, ...: any): boolean
+---@return number id
+local id = exports["lb-phone"]:AddCheck(event, handler)
+RemoveCheck
+
+---@param id number
+---@return boolean success
+local success = exports["lb-phone"]:RemoveCheck(id)
+Social media
+GetSocialMediaUsername
+
+---@param phoneNumber string
+---@param app "instapic" | "birdy" | "trendy" | "darkchat" | "mail"
+---@return string?
+local username = exports["lb-phone"]:GetSocialMediaUsername(phoneNumber, app)
+ToggleVerified
+
+---@param app "birdy" | "instapic" | "trendy"
+---@param username string
+---@param verified boolean
+---@return boolean success
+exports["lb-phone"]:ToggleVerified(app, username, verified)
+IsVerified
+
+---@param app "birdy" | "instapic" | "trendy"
+---@param username string
+---@return boolean
+local isVerified = exports["lb-phone"]:IsVerified(app, username)
+ChangePassword
+
+---@param app "birdy" | "instapic" | "trendy" | "mail" | "darkchat"
+---@param username string
+---@param password string
+---@param dontLogOut? boolean
+---@return boolean success
+local success = exports["lb-phone"]:ChangePassword(app, username, password)
+PostBirdy
+
+---@param username string
+---@param content? string
+---@param attachments? string[]
+---@param replyTo? string # the id of the post to reply to
+---@param hashtags? string[]
+---@param source? number
+---@return boolean success
+---@return string? id
+local success, id = exports["lb-phone"]:PostBirdy(username, content, attachments, replyTo, hashtags)
+GetBirdyPost
+Used to get a post on birdy.
+
+
+---@param id string
+---@return table?
+local post = exports["lb-phone"]:GetBirdyPost(id)
+DeleteBirdyAccount
+
+---@param username string
+---@return boolean success
+local success = exports["lb-phone"]:DeleteBirdyAccount(username)
+DeleteInstaPicAccount
+
+---@param username string
+---@return boolean success
+local success = exports["lb-phone"]:DeleteInstaPicAccount(username)
+DeleteTrendyAccount
+
+---@param username string
+---@return boolean success
+local success = exports["lb-phone"]:DeleteTrendyAccount(username)
+Handle phone & user
+FactoryReset
+
+---@param phoneNumber string
+exports["lb-phone"]:FactoryReset(phoneNumber)
+GetEquippedPhoneNumber
+
+---@param source number | string # the player source or identifier
+---@return string?
+local phoneNumber = exports["lb-phone"]:GetEquippedPhoneNumber(source)
+GetSourceFromNumber
+
+---@param phoneNumber string
+---@return number?
+local source = exports["lb-phone"]:GetSourceFromNumber(phoneNumber)
+HasPhoneItem
+Check if a player has a phone item with a specific phone number.
+
+
+---@param source number
+---@param phoneNumber string
+---@return boolean
+local hasPhoneItem = exports["lb-phone"]:HasPhoneItem(source, phoneNumber)
+GetSettings
+
+---@param phoneNumber string
+---@return table?
+local settings = exports["lb-phone"]:GetSettings(phoneNumber)
+HasAirplaneMode
+
+---@param phoneNumber string
+---@return boolean
+local hasAirplaneMode = exports["lb-phone"]:HasAirplaneMode(phoneNumber)
+SendNotification
+Set remove = true on a button to remove the notification after it is pressed.
+
+
+---@class NotificationButton
+---@field title string
+---@field event? string # The event to trigger when the button is clicked
+---@field server? boolean # Whether the event is server-side
+---@field data any
+---@field remove? boolean # Remove the notification after the button is pressed
+ 
+---@class Notification
+---@field app string
+---@field title string
+---@field content string
+---@field thumbnail? string
+---@field avatar? string
+---@field showAvatar? boolean
+---@field customData? { buttons: NotificationButton[] }
+ 
+---@param target string | number # The player source or phone number
+---@param data Notification
+---@return number?
+exports["lb-phone"]:SendNotification(target, data)
+ 
+-- Example:
+exports["lb-phone"]:SendNotification("2059700389", {
+    app = "Mail",
+    title = "New Mail",
+    content = "You have a new mail from the government.",
+    customData = {
+        buttons = {
+            { title = "Read", event = "mail:openMail", data = { id = 1 } },
+            { title = "Delete", event = "mail:deleteMail", data = { id = 1 }, remove = true }
+        }
+    }
+})
+NotifyEveryone
+
+---@class SimpleNotification
+---@field app string # Identifier of the app that sent the notification
+---@field title string # Title of the notification
+---@field content? string # Content of the notification
+---@field thumbnail? string # Thumbnail URL
+---@field avatar? string # Avatar URL
+---@field showAvatar? boolean # Whether to show an avatar placeholder if no avatar was sent
+ 
+---@param notify "all" | "online" # all = everyone (saved to db), online = only online players (not saved)
+---@param data SimpleNotification
+exports["lb-phone"]:NotifyEveryone("online", {
+    app = "Settings",
+    title = "Test",
+    content = "This is a test notification",
+})
+EmergencyNotification
+
+---@param source number # The player source
+---@param data { title: string, content: string, icon?: "warning" | "danger" }
+---@return number? id
+exports["lb-phone"]:EmergencyNotification(source, {
+    title = "Emergency Alert",
+    content = "This is a test emergency alert",
+    icon = "warning",
+})
+AddContact
+
+---@class ContactData
+---@field number string
+---@field firstname string
+---@field lastname? string
+---@field avatar? string
+---@field email? string
+---@field address? string
+ 
+---@param phoneNumber string # the phone number to add the contact to
+---@param data ContactData
+exports["lb-phone"]:AddContact(phoneNumber, {
+    number = "01234567890",
+    firstname = "John",
+    lastname = "Doe",
+    avatar = "https://example.com/avatar",
+    email =  "john@lbscripts.com",
+    address = "Eclipse Towers, Penthouse Suite 1",
+})
+Wallet app
+AddTransaction
+
+---@param phoneNumber string # the phone number to add the transaction to
+---@param amount number # the amount of the transaction
+---@param title string # the title of the transaction
+---@param image? string # the image URL of the transaction
+exports["lb-phone"]:AddTransaction(phoneNumber, amount, title, image)
+Security
+GetPin
+
+---@param phoneNumber string
+---@return string
+local pin = exports["lb-phone"]:GetPin(phoneNumber)
+ResetSecurity
+
+---@param phoneNumber string
+exports["lb-phone"]:ResetSecurity(phoneNumber)
+Mail
+CreateMailAccount
+
+---@param address string
+---@param password string
+---@param cb? function
+---@return boolean success
+---@return string? reason
+local result = exports["lb-phone"]:CreateMailAccount(address, password)
+GetEmailAddress
+
+---@param phoneNumber string
+---@return string?
+local email = exports["lb-phone"]:GetEmailAddress(phoneNumber)
+SendMail
+
+---@class MailAction
+---@field label string
+---@field data { event: string, isServer: boolean, data: any }
+ 
+---@class MailData
+---@field to string # The email address to send the mail to
+---@field sender? string # The sender of the email
+---@field subject string # The subject of the email
+---@field message string # The message of the email
+---@field attachments? string[] # URLs of the attachments
+---@field actions? MailAction[] # Actions (buttons) that the user can interact with
+ 
+---@param data MailData
+---@return boolean success
+---@return string? id
+local success, id = exports["lb-phone"]:SendMail(data)
+DeleteMail
+
+---@param id string
+---@return boolean
+local success = exports["lb-phone"]:DeleteMail(id)
+Messages/SMS
+SendMessage
+
+---@param from string # The sender's phone number
+---@param to string # The recipient's phone number
+---@param message string # The message content
+---@param attachments? string[] # URLs of the attachments
+---@param cb? function
+---@param channelId? number # The channel ID to send the message to
+---@return { channelId: number, messageId: number }?
+local result = exports["lb-phone"]:SendMessage(from, to, message, attachments, cb, channelId)
+SentMoney
+Used to send a message to a player indicating that they have received money.
+
+
+---@param from string # The sender's phone number
+---@param to string # The recipient's phone number
+---@param amount number # The amount of money sent
+exports["lb-phone"]:SentMoney(from, to, amount)
+SendCoords
+
+---@param from string # The sender's phone number
+---@param to string # The recipient's phone number
+---@param coords vector2
+exports["lb-phone"]:SendCoords(from, to, coords)
+DarkChat
+SendDarkChatMessage
+
+---@param username string
+---@param channel string
+---@param message string
+---@param cb? fun(success: boolean)
+---@return boolean
+local success = exports["lb-phone"]:SendDarkChatMessage(username, channel, message, cb)
+SendDarkChatLocation
+
+---@param username string
+---@param channel string
+---@param coords vector2
+---@param cb? fun(success: boolean)
+---@return boolean
+local success = exports["lb-phone"]:SendDarkChatLocation(username, channel, coords, cb)
+CreateDarkChatChannel
+
+---@param channel string
+---@param password? string
+---@return boolean success
+---@return string? reason
+local success, reason = exports["lb-phone"]:CreateDarkChatChannel(channel, password)
+DeleteDarkChatChannel
+
+---@param channel string
+---@param deleteMessages boolean
+---@return boolean success
+local success = exports["lb-phone"]:DeleteDarkChatChannel(channel, deleteMessages)
+AddUserToDarkChatChannel
+
+---@param username string
+---@param channel string
+---@return boolean success
+local success = exports["lb-phone"]:AddUserToDarkChatChannel(username, channel)
+RemoveUserFromDarkChatChannel
+
+---@param username string
+---@param channel string
+---@return boolean success
+local success = exports["lb-phone"]:RemoveUserFromDarkChatChannel(username, channel)
+Battery
+SaveBattery
+
+---@param phoneNumber string
+exports["lb-phone"]:SaveBattery(phoneNumber)
+SaveAllBatteries
+
+exports["lb-phone"]:SaveAllBatteries()
+IsPhoneDead
+
+---@param phoneNumber string
+---@return boolean
+local dead = exports["lb-phone"]:IsPhoneDead(phoneNumber)
+Calls
+CreateCall
+Creates a call that is not shown on the phone UI, e.g. for payphones.
+
+
+---@param caller { source: number, phoneNumber: string }
+---@param callee? string # The phone number of the person being called
+---@param options? { requirePhone?: boolean, hideNumber?: boolean, company?: string }
+---@return number callId
+local callId = exports["lb-phone"]:CreateCall({
+    phoneNumber = "Abc 123",
+    source = src
+}, number, {
+    requirePhone = false,
+    hideNumber = true
+})
+GetCall
+
+---@class CallData
+---@field callId number
+---@field started number # The os.time() when the call started
+---@field answered boolean
+---@field videoCall boolean
+---@field hideCallerId boolean
+---@field company? string
+---@field caller { source: number, number: string, nearby: number[] }
+---@field callee { source?: number, number?: string, nearby: number[] }
+ 
+---@param callId number
+---@return CallData?
+local call = exports["lb-phone"]:GetCall(callId)
+EndCall
+
+---@param source number
+---@return boolean success
+exports["lb-phone"]:EndCall(source)
+IsInCall
+
+---@param source number
+---@return boolean inCall
+---@return number? callId
+---@return Call? call
+local inCall, callId, call = exports["lb-phone"]:IsInCall(source)
+Crypto
+Types
+
+---@alias CryptoCoinPermissions { buy?: boolean, sell?: boolean, transfer?: boolean }
+ 
+---@class CryptoCoin
+---@field id string
+---@field name string
+---@field symbol string
+---@field image string
+---@field current_price number
+---@field prices number[]
+---@field change_24h number
+---@field permissions? CryptoCoinPermissions
+ 
+---@class OwnedCryptoCoin : CryptoCoin
+---@field owned? number
+---@field invested? number
+AddCrypto
+
+---@param target string | number # The player identifier or source
+---@param coin string
+---@param amount number
+---@return boolean
+local success = exports["lb-phone"]:AddCrypto(target, coin, amount)
+RemoveCrypto
+
+---@param target string | number # The player identifier or source
+---@param coin string
+---@param amount number
+---@return boolean
+local success = exports["lb-phone"]:RemoveCrypto(target, coin, amount)
+AddCustomCoin
+
+---@param id string
+---@param name string
+---@param symbol string
+---@param image string
+---@param currentPrice number
+---@param prices number[]
+---@param change24h number
+---@param permissions? CryptoCoinPermissions
+exports["lb-phone"]:AddCustomCoin(id, name, symbol, image, currentPrice, prices, change24h, permissions)
+GetCoin
+
+---@param id string
+---@return CryptoCoin?
+local coinData = exports["lb-phone"]:GetCoin(id)
+GetOwnedCoin
+Gets a player’s balance and investment data together with the current coin data. target can be a player source or an identifier.
+
+
+---@param target string | number # The player identifier or source
+---@param coin string
+---@return OwnedCryptoCoin | false
+local coinData = exports["lb-phone"]:GetOwnedCoin(target, coin)
+Callbacks
+CallbackOptions
+
+
+---@class CallbackOptions
+---@field preventSpam? boolean # Prevents the same callback from being called until the previous one has finished
+---@field rateLimit? number # How many times this callback can be called per player per minute
+---@field defaultReturn? any # Default return value if the callback is not called or fails
+RegisterCallback
+
+---@param event string
+---@param handler fun(source: number, ...) : any
+---@param options? CallbackOptions
+exports["lb-phone"]:RegisterCallback(event, handler, options)
+BaseCallback
+
+---@param event string
+---@param callback fun(source: number, phoneNumber: string, ...) : ...
+---@param options? CallbackOptions
+exports["lb-phone"]:BaseCallback(event, callback, options)
+AwaitClientCallback
+
+---@param event string
+---@param source number
+---@param ...
+---@return ...
+local result = exports["lb-phone"]:AwaitClientCallback(event, source, ...)
+TriggerClientCallback
+
+---@param event string
+---@param source number
+---@param cb fun(...)
+---@param ... any
+exports["lb-phone"]:TriggerClientCallback(event, source, cb, ...)
+
+Phone
+Exports and events
+Server events
+Copy page
+
+Server Events
+Misc
+lb-phone:numberChanged
+Triggered when the equipped phone number is changed
+
+
+---@param source number
+---@param newNumber? string
+AddEventHandler("lb-phone:numberChanged", function(source, newNumber)
+    print("Phone number changed to:", newNumber)
+end)
+lb-phone:phoneNumberGenerated
+Triggered when a new phone number is generated for a player
+
+
+---@param source number
+---@param phoneNumber string
+AddEventHandler("lb-phone:phoneNumberGenerated", function(source, phoneNumber)
+    print("Generated phone number:", phoneNumber, "for", GetPlayerName(source) .." (" .. source .. ")")
+end)
+lb-phone:factoryReset
+Triggered when a player factory resets their phone
+
+
+---@param source number
+---@param phoneNumber string
+AddEventHandler("lb-phone:factoryReset", function(source, phoneNumber)
+    print("Player", GetPlayerName(source) .." (" .. source .. ") factory reset their phone with number:", phoneNumber)
+end)
+lb-phone:deletedFromGallery
+Triggered when a player deletes media from their phone gallery
+
+
+---@param source number
+---@param phoneNumber string
+---@param link string
+AddEventHandler("lb-phone:deletedFromGallery", function(source, phoneNumber, link)
+    print("Player", GetPlayerName(source) .." (" .. source .. ") deleted media from their gallery:", link)
+end)
+Messages/SMS
+lb-phone:messages:messageSent
+Triggered when a message is sent. Please note that attachments is a json encoded array of strings.
+
+
+---@param message: { channelId: number, messageId: number, sender: string, recipient: string, message: string, attachments? string }
+AddEventHandler("lb-phone:messages:messageSent", function(message)
+    print("New message:", json.encode(message, { indent = true }))
+end)
+lb-phone:newCompanyMessage
+Triggered when a new company message is sent.
+
+
+---@param message { company: string, sender: string, sentByEmployee: boolean, message: string, coords?: vector2, anonymous: boolean }
+AddEventHandler("lb-phone:newCompanyMessage", function(message)
+    print("New company message:", json.encode(message, { indent = true }))
+end)
+lb-phone:darkchat:newMessage
+
+---@param channel string
+---@param username string
+---@param message string
+AddEventHandler("lb-phone:darkchat:newMessage", function(channel, username, message)
+    print("New darkchat message in channel", channel, "from", username .. ":", message)
+end)
+Calls
+For call data, see GetCall.
+
+lb-phone:newCall
+Triggered when a new call is made.
+
+
+AddEventHandler("lb-phone:newCall", function(call)
+    print("New call:", json.encode(call, { indent = true }))
+end)
+lb-phone:callAnswered
+Triggered when a call is answered.
+
+
+AddEventHandler("lb-phone:callAnswered", function(call)
+    print("Call answered:", json.encode(call, { indent = true }))
+end)
+lb-phone:callEnded
+Triggered when a call is ended.
+
+
+---@param call table
+---@param source number # The person who ended the call
+AddEventHandler("lb-phone:callEnded", function(call, source)
+    print("Call ended:", json.encode(call, { indent = true }))
+end)
+Social media
+lb-phone:toggleVerified
+
+---@param app "birdy" | "instapic" | "trendy"
+---@param username string
+---@param verified boolean
+AddEventHandler("lb-phone:toggleVerified", function(app, username, verified)
+    print("Verified status for", app, username, "is now", verified)
+end)
+lb-phone:birdy:newPost
+
+---@param post { id: string, username: string, content: string, attachments?: string, reply_to?: string, timestamp: number, replyToAuthor: string, display_name: string, profile_image?: string, verified? boolean }
+AddEventHandler("lb-phone:birdy:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:trendy:newPost
+
+---@param post { id: string, username: string, caption?: string, videoUrl string }
+AddEventHandler("lb-phone:trendy:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:instapic:newPost
+
+---@param post { id: string, username: string, media: string[], caption: string, location? string }
+AddEventHandler("lb-phone:instapic:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:pages:newPost
+
+---@param post { id: string, number: string, title: string, description: string, attachment?: string, price? number }
+AddEventHandler("lb-phone:pages:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:marketplace:newPost
+
+---@param post { id: string, number: string, title: string, description: string, attachments: string[], price number }
+AddEventHandler("lb-phone:marketplace:newPost", function(post)
+    print(json.encode(post, { indent = true }))
+end)
+lb-phone:mail:mailSent
+Triggered when an email is sent
+
+
+---@class MailData
+---@field id number
+---@field to string
+---@field sender string
+---@field subject string
+---@field message string
+---@field attachments? string[]
+---@field actions? { name: string, data: table }[]
+---@field timestamp number
+ 
+---@param mailData MailData
+AddEventHandler("lb-phone:mail:mailSent", function(mailData)
+    print("Mail sent:", json.encode(mailData, { indent = true }))
+end)
+Wallet
+lb-phone:onAddTransaction
+
+---@param transactionType "received" | "paid"
+---@param phoneNumber string
+---@param amount number
+---@param company? string
+---@param logo? string
+AddEventHandler("lb-phone:onAddTransaction", function(transactionType, phoneNumber, amount, company, logo)
+    print("Transaction added:", receivedPaid, phoneNumber, amount, company, logo)
+end)
+
+Phone
+Exports and events
+State bags
+Copy page
+
+State Bags
+The phone uses state bags to sync data between clients. Read more about state bags .
+
+Phone
+Name	Data Type	Description
+phoneOpen	boolean	Whether the phone is open or not.
+phoneNumber	string	The phone number, e.g. 01234567890
+phoneName	string	The phone name, e.g. “Loaf’s Phone”
+flashlight	boolean	Whether the flashlight is on or not.
+Calls
+Name	Data Type	Description
+speakerphone	boolean	If speakerphone is enabled or not
+mutedCall	boolean	If the call is muted or not
+otherMutedCall	boolean	Whether or not the other person in the call is muted
+onCallWith	number	The source the player is on call with
+callAnswered	boolean	Whether the call has been answered or not
+Misc
+Name	Data Type	Description
+instapicIsLive	boolean	If the player is live on InstaPic
+
+Phone
+Custom apps
+Copy page
+
+Custom Apps
+LB Phone allows you to add apps that either have a UI or simply trigger functions when opening the app. To add an app that triggers a function upon opening it, go to lb-phone/config/config.lua and add the app to the Config.CustomApps table, like this:
+
+lb-phone/config/config.lua
+
+Config.CustomApps = {
+    ["app_identifier"] = { -- A unique identifier for the app, not shown to the user
+        name = "App Name", -- The name of the app, shown to the user
+        description = "App Description", -- The description of the app, shown to the user
+        developer = "LB Phone", -- OPTIONAL the developer of the app
+        defaultApp = true, -- OPTIONAL if set to true, app should be added without having to download it,
+        game = false, -- OPTIONAL if set to true, app will be added to the game section
+        size = 59812, -- OPTIONAL in kB
+        images = { "https://example.com/photo.jpg" }, -- OPTIONAL array of images for the app on the app store
+        ui = "resource-name/ui/index.html", -- OPTIONAL
+        icon = "https://cfx-nui-" .. GetCurrentResourceName() .. "/ui/icon.png", -- OPTIONAL app icon
+        price = 0, -- OPTIONAL, Make players pay with in-game money to download the app
+        landscape = false, -- OPTIONAL, if set to true, the app will be displayed in landscape mode
+        keepOpen = true, -- OPTIONAL, if set to true, the app will not close when the player opens the app (only works if ui is not defined)
+        onUse = function() -- OPTIONAL function to be called when the app is opened
+            -- do something
+        end,
+        onServerUse = function(source) -- OPTIONAL server side function to be called when the app is opened
+            -- do something
+        end
+    }
+}
+Custom apps using UI
+If you want to use a custom UI for your app, you need to create a seperate script and provide the path of the HTML file and send it as ui.
+
+The recommended way to create an app with UI is to create it using exports. We have template apps  that you can use for reference.
+
+If the user has dark mode enabled, data-theme will be set to dark. Otherwise, it will be set to light.
+
+Adding the app
+To add the app, use the AddCustomApp export.
+
+Removing the app
+To remove the app, use the RemoveCustomApp export.
+
+Sending a message to the UI
+To send a message to the UI, you need to use the SendCustomAppMessage export instead of using SendNUIMessage. You would listen for it the same way in the frontend.
+
+Best practices
+Load initial data from the UI
+Do not send initial data from onOpen. The callback runs when the phone opens the app, while the iframe may still be loading, so a message sent there can arrive before the UI is ready.
+
+Register a NUI callback in your client script:
+
+
+---@class DashboardData
+---@field displayName string
+---@field balance number
+ 
+RegisterNUICallback("getDashboardData", function(_, cb)
+    ---@type DashboardData
+    local data = {
+        displayName = "John Doe",
+        balance = 1000
+    }
+ 
+    cb(data)
+end)
+Request the data when the UI mounts:
+
+
+type DashboardData = {
+    displayName: string
+    balance: number
+}
+ 
+const data = await fetchNui<DashboardData>('getDashboardData')
+fetchNui automatically targets the resource that registered the app. Use SendCustomAppMessage for later push updates after the UI has loaded.
+
+Imported components & functions
+When the app gets loaded on the phone, a few functions are imported into the globalThis object.
+
+Name	Type	Description
+resourceName	string	The name of the resource that added the custom app
+appName	string	The app name
+settings	object	The settings of the phone
+components	object	Useful components for the app
+Components
+The following components can be accessed via globalThis.components. You can view a TypeScript declaration file at lb-reactts/ui/src/components.d.ts .
+
+createGameRender
+Creates a game render, which renders the game to a canvas. This is used to create a camera in your app, and should be used with the camera exports.
+
+
+const gameRender = components.createGameRender(canvas)
+ 
+// set the aspect ratio
+gameRender.resizeByAspect(9 / 16)
+ 
+// pause the rendering
+gameRender.pause()
+ 
+// unpause the rendering
+gameRender.resume()
+ 
+// take a photo
+const blob: Blob = await gameRender.takePhoto()
+ 
+// take a video
+const recorder = gameRender.startRecording((blob: Blob) => {
+    const video = URL.createObjectURL(blob)
+})
+ 
+await new Promise((resolve) => setTimeout(resolve, 5000))
+ 
+recorder.stop()
+ 
+// destroy the game render
+gameRender.destroy()
+GameMap
+Creates an interactive game map inside an HTML element. The container must have a width and height. GameMap loads its dependencies automatically and uses the maps and styles configured in LB Phone.
+
+
+type GameMapPosition = [y: number, x: number] | { x: number; y: number }
+ 
+type GameMapOptions = {
+    allowMoving?: boolean
+    center?: GameMapPosition
+    minZoom?: number
+    maxZoom?: number
+    defaultZoom?: number
+}
+ 
+type GameMapLocation = {
+    id: number
+    title?: string
+    image?: string
+    coords: {
+        x: number
+        y: number
+    }
+}
+ 
+const container = document.querySelector<HTMLElement>('#map')
+ 
+if (!container) {
+    throw new Error('Map container not found')
+}
+ 
+const gameMap = new components.GameMap(container, {
+    allowMoving: true,
+    center: { x: 428.9, y: -984.5 },
+    defaultZoom: 3
+} satisfies GameMapOptions)
+ 
+await gameMap.ready
+ 
+const location: GameMapLocation | null = gameMap.addLocation({
+    title: 'LSPD',
+    image: 'https://example.com/lspd.png',
+    coords: { x: 428.9, y: -984.5 }
+})
+ 
+await gameMap.setShowSelf(true)
+gameMap.setPosition({ x: 428.9, y: -984.5 }, 4)
+ 
+// Call this when the app or component is unmounted
+gameMap.destroy()
+allowMoving defaults to true. Positions can be passed as { x, y } game coordinates or as a [y, x] tuple. ready resolves after the map has loaded. The current player position is available through currentCoords as { x, y }, or null before it has been received.
+
+Method	Description
+setZoom(zoomLevel)	Sets the zoom level, clamped to the configured minimum and maximum. Returns whether the value was valid.
+getZoom()	Returns the current zoom level, or null if the map is not ready and no default zoom was provided.
+setPosition(position, zoomLevel?)	Centers the map on a position and optionally changes the zoom level. Returns whether the position was valid.
+getMaps()	Returns the available map IDs. The default IDs are losSantos and cayoPerico; custom maps use customMap0, and so on.
+setMap(map)	Selects a map using its ID or an object containing an id. Returns whether the map exists.
+cycleMap()	Selects and returns the next map ID, or null if no maps are available.
+getStyles()	Returns the style names available for the selected map.
+setStyle(style)	Selects a map style. Returns whether the style exists and could be selected.
+cycleStyle()	Selects and returns the next style name, or null if no styles are available.
+setShowSelf(show)	Shows or hides the player’s live position. Returns a promise that resolves after coordinate updates have been toggled.
+addLocation({ title?, image?, coords })	Adds a marker and returns its location object, including its generated numeric id, or null for invalid coordinates.
+removeLocation(location)	Removes a marker using its numeric ID or the location object returned by addLocation. Returns whether the ID was valid.
+destroy()	Removes the map, event listeners, observers, and player coordinate updates. Call it when the map is no longer being used.
+uploadMedia
+Uploads media and returns a promise with the URL.
+
+
+// Upload type can be 'Video' | 'Image' | 'Audio'
+const url = await components.uploadMedia('Video', blob)
+saveToGallery
+Saves a URL to the gallery and returns a promise with the ID
+
+
+const id = await components.saveToGallery(url)
+setColorPicker
+
+components.setColorPicker({
+    onSelect(color) {},
+    onClose(color) {}
+})
+setPopUp
+
+components.setPopUp({
+    title: 'Popup Menu',
+    description: 'Confirm your choice',
+    buttons: [
+        {
+            title: 'Cancel',
+            color: 'red',
+            cb: () => {
+                console.log('Cancel')
+            }
+        },
+        {
+            title: 'Confirm',
+            color: 'blue',
+            cb: () => {
+                console.log('Confirm')
+            }
+        }
+    ]
+})
+setContextMenu
+
+components.setContextMenu({
+    title: 'Context menu',
+    buttons: [
+        {
+            title: 'Phone Notification',
+            color: 'blue',
+            cb: () => {
+                sendNotification({ title: notificationText })
+            }
+        },
+        {
+            title: 'GTA Notification',
+            color: 'red',
+            cb: () => {
+                fetchNui('drawNotification', { message: notificationText })
+            }
+        }
+    ]
+})
+setContactSelector
+
+components.setContactSelector({
+    onSelect(contact) {
+        components.setPopUp({
+            title: 'Selected contact',
+            description: `${contact.firstname ?? '??'} ${contact.lastname ?? ''} ${contact.number}`,
+            buttons: [
+                {
+                    title: 'OK'
+                }
+            ]
+        })
+    }
+})
+setShareComponent
+See the AirShare export for what data to send.
+
+
+components.setShareComponent({
+    type: 'image',
+    data: {
+        isVideo: false,
+        src: 'https://docs.lbscripts.com/images/icons/icon.png'
+    }
+})
+setEmojiPickerVisible
+
+components.setEmojiPickerVisible({
+    onSelect: (emoji) => {
+        components.setEmojiPickerVisible(false)
+        components.setPopUp({
+            title: 'Selected emoji',
+            description: emoji.emoji,
+            buttons: [
+                {
+                    title: 'OK'
+                }
+            ]
+        })
+    }
+})
+setGifPickerVisible
+
+components.setGifPickerVisible({
+    onSelect(gif) {
+        components.setPopUp({
+            title: 'Selected GIF',
+            attachment: { src: gif },
+            buttons: [
+                {
+                    title: 'OK'
+                }
+            ]
+        })
+    }
+})
+setGallery
+
+components.setGallery({
+    includeVideos: true,
+    includeImages: true,
+    allowExternal: true,
+    multiSelect: false,
+ 
+    onSelect(data) {
+        components.setPopUp({
+            title: 'Selected media',
+            attachment: { src: Array.isArray(data) ? data[0].src : data.src },
+            buttons: [
+                {
+                    title: 'OK'
+                }
+            ]
+        })
+    }
+})
+setFullscreenImage
+
+components.setFullscreenImage('https://docs.lbscripts.com/images/icons/icon.png')
+setHomeIndicatorVisible
+
+components.setHomeIndicatorVisible(true)
+Functions
+fetchNui(event, data, scriptName?)
+
+fetchNui('test', {
+    foo: 'bar'
+})
+onNuiEvent
+Listen for NUI messages sent via SendCustomAppMessage
+
+
+onNuiEvent('test', (data) => {
+    console.log(data)
+})
+onSettingsChange
+Listen for settings changes
+
+
+onSettingsChange((newSettings) => {
+    console.log(newSettings)
+})
+createCall
+
+createCall({
+    number: '1234567890', // you can send `company` instead of `number` to call a company
+    videoCall: false,
+    hideNumber: false
+})
