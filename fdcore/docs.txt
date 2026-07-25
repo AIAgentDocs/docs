@@ -1,0 +1,196 @@
+function ban(source, reason)
+    exports["ElectronAC"]:banPlayer(source, reason, "Event", false)
+end
+
+
+exports('sendToDiscord', sendToDiscord)
+exports('ban', ban)
+
+function getplayerjob(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        return xPlayer.job.name
+    end
+    return nil
+end
+exports('getplayerjob', getplayerjob)
+
+function getplayergrade(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        return xPlayer.job.grade
+    end
+    return nil
+end
+exports('getplayergrade', getplayergrade)
+
+function getplayername(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        return xPlayer.getName()
+    end
+    return nil
+end
+exports('getplayername', getplayername)
+
+function getplayerdob(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if xPlayer then
+        return xPlayer.get('dateofbirth') or xPlayer.variables.dateofbirth
+    end
+    return nil
+end
+exports('getplayerdob', getplayerdob)
+
+function getactivejob(jobName)
+    local count = 0
+    if type(jobName) == "table" then
+        for i = 1, #jobName do
+            count += #ESX.GetExtendedPlayers("job", jobName[i])
+        end
+    else
+        count += #ESX.GetExtendedPlayers("job", jobName)
+    end
+    return count
+end
+exports('getactivejob', getactivejob)
+
+function getactivepd()
+    local pdJobs = {"police", "sheriff", "sahp"}
+    local count = 0
+    for i = 1, #pdJobs do
+        count += #ESX.GetExtendedPlayers("job", pdJobs[i])
+    end
+    return count
+end
+exports('getactivepd', getactivepd)
+
+-- ----------------- DISCORD EXPORTS -----------------
+
+function getplayerdiscord(source)
+    for _, v in ipairs(GetPlayerIdentifiers(source)) do
+        if string.match(v, "discord:") then
+            return string.gsub(v, "discord:", "")
+        end
+    end
+    return nil
+end
+exports('getplayerdiscord', getplayerdiscord)
+
+function fetchdiscordname(source)
+    local p = promise.new()
+    local discordId = getplayerdiscord(source)
+    
+    if not discordId then
+        p:resolve(nil)
+        return Citizen.Await(p)
+    end
+    
+    if not fd.discord or not fdsv.discordtoken then
+        p:resolve(nil)
+        return Citizen.Await(p)
+    end
+
+    local guildId = tostring(fd.discord.guildid):gsub("%s+", "")
+    local url = ("https://discord.com/api/v10/guilds/%s/members/%s"):format(guildId, discordId)
+    
+    PerformHttpRequest(url, function(err, text, headers)
+        if err == 200 and text then
+            local data = json.decode(text)
+            if data then
+                local discordName = data.nick or (data.user and (data.user.global_name or data.user.username))
+                p:resolve(discordName)
+            else
+                p:resolve(nil)
+            end
+        else
+            p:resolve(nil)
+        end
+    end, "GET", "", {
+        ["Content-Type"] = "application/json",
+        ["Authorization"] = "Bot " .. (fdsv.discordtoken or ""):gsub("%s+", "")
+    })
+    
+    return Citizen.Await(p)
+end
+exports('fetchdiscordname', fetchdiscordname)
+
+function fetchplayerroles(source)
+    local p = promise.new()
+    local discordId = getplayerdiscord(source)
+    
+    if not discordId then
+        p:resolve({})
+        return Citizen.Await(p)
+    end
+    
+    if not fd.discord or not fdsv.discordtoken then
+        p:resolve({})
+        return Citizen.Await(p)
+    end
+
+    local guildId = tostring(fd.discord.guildid):gsub("%s+", "")
+    local url = ("https://discord.com/api/v10/guilds/%s/members/%s"):format(guildId, discordId)
+    
+    
+    PerformHttpRequest(url, function(err, text, headers)
+        if err == 200 and text then
+            local data = json.decode(text)
+            if data and data.roles then
+             --   print("^2[fd_core] Successfully fetched " .. #data.roles .. " roles for " .. discordId .. "^7")
+                p:resolve(data.roles)
+            else
+                p:resolve({})
+            end
+        else
+            if text then print("^1[fd_core] Error body: " .. text .. "^7") end
+            p:resolve({})
+        end
+    end, "GET", "", {
+        ["Content-Type"] = "application/json",
+        ["Authorization"] = "Bot " .. (fdsv.discordtoken or ""):gsub("%s+", "")
+    })
+    
+    return Citizen.Await(p)
+end
+exports('fetchplayerroles', fetchplayerroles)
+
+function hasdiscordrole(source, roleKeyOrId)
+    local roles = fetchplayerroles(source)
+    if not roles or #roles == 0 then return false end
+    local targetRoleId = fd.discord.roles[roleKeyOrId] or roleKeyOrId
+
+    for _, role in ipairs(roles) do
+        if tostring(role) == tostring(targetRoleId) then
+            return true
+        end
+    end
+    return false
+end
+exports('hasdiscordrole', hasdiscordrole)
+
+function fetchguildroles()
+    local p = promise.new()
+    
+    if not fd.discord or not fdsv.discordtoken then
+        p:resolve({})
+        return Citizen.Await(p)
+    end
+
+    local url = ("https://discordapp.com/api/v10/guilds/%s/roles"):format(fd.discord.guildid)
+    
+    PerformHttpRequest(url, function(err, text, headers)
+        if err == 200 and text then
+            local data = json.decode(text)
+            p:resolve(data or {})
+        else
+            p:resolve({})
+        end
+    end, "GET", "", {
+        ["Content-Type"] = "application/json",
+        ["Authorization"] = "Bot " .. fdsv.discordtoken
+    })
+    
+    return Citizen.Await(p)
+end
+exports('fetchguildroles', fetchguildroles)
